@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
-import requests
 from datetime import datetime
 import calendar
-
-API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
 st.set_page_config(
     page_title="LAIKA ERP",
@@ -21,6 +18,8 @@ st.markdown("""
     background:#eef4ff;
 }
 
+/* SIDEBAR */
+
 [data-testid="stSidebar"]{
     background:linear-gradient(180deg,#1e3a8a,#4f46e5);
 }
@@ -28,6 +27,8 @@ st.markdown("""
 [data-testid="stSidebar"] *{
     color:white;
 }
+
+/* BUTTON */
 
 .stButton>button{
     width:100%;
@@ -40,48 +41,48 @@ st.markdown("""
     color:white;
 }
 
-.card1{
+/* CARDS */
+
+.card{
+    padding:25px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+    height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    margin-bottom:15px;
+}
+
+.blue{
     background:linear-gradient(135deg,#2563eb,#1d4ed8);
-    padding:20px;
-    border-radius:20px;
-    color:white;
-    text-align:center;
 }
 
-.card2{
+.green{
     background:linear-gradient(135deg,#059669,#10b981);
-    padding:20px;
-    border-radius:20px;
-    color:white;
-    text-align:center;
 }
 
-.card3{
+.red{
     background:linear-gradient(135deg,#dc2626,#ef4444);
-    padding:20px;
-    border-radius:20px;
-    color:white;
-    text-align:center;
 }
 
-.card4{
+.purple{
     background:linear-gradient(135deg,#7c3aed,#9333ea);
-    padding:20px;
-    border-radius:20px;
-    color:white;
-    text-align:center;
+}
+
+.orange{
+    background:linear-gradient(135deg,#ea580c,#f97316);
 }
 
 </style>
 
 """, unsafe_allow_html=True)
 
-# ---------------- LOGIN STATE ----------------
+# ---------------- LOGIN ----------------
 
 if "login" not in st.session_state:
     st.session_state.login = False
-
-# ---------------- LOGIN PAGE ----------------
 
 if st.session_state.login == False:
 
@@ -99,7 +100,6 @@ if st.session_state.login == False:
         if username == "admin" and password == "admin123":
 
             st.session_state.login = True
-            st.success("Login Success")
             st.rerun()
 
         else:
@@ -119,7 +119,7 @@ if st.session_state.login == False:
         if forgot_user == "admin":
 
             st.info(
-                "Your Password is: admin123"
+                "Password: admin123"
             )
 
         else:
@@ -130,29 +130,25 @@ if st.session_state.login == False:
 
 else:
 
-    # ---------- SIDEBAR ----------
-
     st.sidebar.title("🐶 LAIKA ERP")
 
-    if st.sidebar.button("Logout"):
+    if st.sidebar.button("🚪 Logout"):
 
         st.session_state.login = False
         st.rerun()
 
     page = st.sidebar.radio(
 
-        "Menu",
+        "MENU",
 
         [
-            "Dashboard",
-            "Purchase",
-            "Sales",
-            "Expense",
-            "Stock"
+            "📊 Dashboard",
+            "🛒 Purchase",
+            "💰 Sales",
+            "💸 Expense",
+            "📦 Stock"
         ]
     )
-
-    # ---------- DATE ----------
 
     today = datetime.now()
 
@@ -162,11 +158,11 @@ else:
         today.weekday()
     ]
 
-    # ---------- DASHBOARD ----------
+    # ---------------- DASHBOARD ----------------
 
-    if page == "Dashboard":
+    if page == "📊 Dashboard":
 
-        st.title("📊 Dashboard")
+        st.title("📊 LAIKA ERP DASHBOARD")
 
         st.subheader(
             f"📅 {today_date} | {today_day}"
@@ -176,9 +172,9 @@ else:
 
         with c1:
 
-            st.markdown(f"""
+            st.markdown("""
 
-            <div class="card1">
+            <div class="card blue">
             <h3>Today's Sales</h3>
             <h1>₹ 0</h1>
             </div>
@@ -187,9 +183,9 @@ else:
 
         with c2:
 
-            st.markdown(f"""
+            st.markdown("""
 
-            <div class="card2">
+            <div class="card green">
             <h3>Today's Purchase</h3>
             <h1>₹ 0</h1>
             </div>
@@ -198,9 +194,9 @@ else:
 
         with c3:
 
-            st.markdown(f"""
+            st.markdown("""
 
-            <div class="card3">
+            <div class="card red">
             <h3>Today's Expense</h3>
             <h1>₹ 0</h1>
             </div>
@@ -209,9 +205,9 @@ else:
 
         with c4:
 
-            st.markdown(f"""
+            st.markdown("""
 
-            <div class="card4">
+            <div class="card purple">
             <h3>Today's Profit</h3>
             <h1>₹ 0</h1>
             </div>
@@ -220,109 +216,217 @@ else:
 
         st.divider()
 
-        st.success(
-            "✅ ERP Running Successfully"
-        )
+        st.subheader("📈 Monthly Report")
 
-    # ---------- PURCHASE ----------
+        m1,m2,m3,m4 = st.columns(4)
 
-    elif page == "Purchase":
+        with m1:
+
+            st.markdown("""
+
+            <div class="card orange">
+            <h3>Monthly Sales</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
+
+        with m2:
+
+            st.markdown("""
+
+            <div class="card blue">
+            <h3>Monthly Purchase</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
+
+        with m3:
+
+            st.markdown("""
+
+            <div class="card green">
+            <h3>Monthly Expense</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
+
+        with m4:
+
+            st.markdown("""
+
+            <div class="card purple">
+            <h3>Monthly Profit</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
+
+    # ---------------- PURCHASE ----------------
+
+    elif page == "🛒 Purchase":
 
         st.title("🛒 Purchase Entry")
 
-        bill_no = st.text_input(
-            "Bill Number"
-        )
+        col1,col2 = st.columns(2)
 
-        product = st.text_input(
-            "Product Name"
-        )
+        with col1:
 
-        qty = st.number_input(
-            "Quantity",
-            min_value=0.0
-        )
+            bill_no = st.text_input(
+                "Bill Number"
+            )
 
-        rate = st.number_input(
-            "Rate",
-            min_value=0.0
-        )
+            party = st.text_input(
+                "Supplier Name"
+            )
 
-        total = qty * rate
+            product = st.text_input(
+                "Product Name"
+            )
 
-        st.info(f"Total: ₹ {total}")
+            unit = st.selectbox(
+
+                "Unit",
+
+                [
+                    "KG",
+                    "PCS",
+                    "DOZEN",
+                    "BAG"
+                ]
+            )
+
+            qty = st.number_input(
+                "Quantity",
+                min_value=0.0
+            )
+
+        with col2:
+
+            rate = st.number_input(
+                "Rate",
+                min_value=0.0
+            )
+
+            total = qty * rate
+
+            st.info(
+                f"Total: ₹ {total}"
+            )
+
+            payment = st.selectbox(
+
+                "Payment Type",
+
+                [
+                    "Cash",
+                    "Online",
+                    "Udhari"
+                ]
+            )
+
+            paid = st.number_input(
+                "Paid Amount",
+                min_value=0.0
+            )
+
+            balance = total - paid
+
+            st.warning(
+                f"Balance: ₹ {balance}"
+            )
 
         if st.button("Save Purchase"):
 
             st.success(
-                "Purchase Saved"
+                "Purchase Saved Successfully"
             )
 
-        st.divider()
+    # ---------------- SALES ----------------
 
-        st.subheader("Delete Purchase Entry")
-
-        delete_purchase = st.text_input(
-            "Enter Bill Number to Delete"
-        )
-
-        if st.button("Delete Purchase"):
-
-            st.warning(
-                f"Purchase Bill {delete_purchase} Deleted"
-            )
-
-    # ---------- SALES ----------
-
-    elif page == "Sales":
+    elif page == "💰 Sales":
 
         st.title("💰 Sales Entry")
 
-        bill_no = st.text_input(
-            "Sales Bill No"
-        )
+        col1,col2 = st.columns(2)
 
-        customer = st.text_input(
-            "Customer Name"
-        )
+        with col1:
 
-        qty = st.number_input(
-            "Sales Quantity",
-            min_value=0.0
-        )
+            bill_no = st.text_input(
+                "Sales Bill No"
+            )
 
-        rate = st.number_input(
-            "Sales Rate",
-            min_value=0.0
-        )
+            customer = st.text_input(
+                "Customer Name"
+            )
 
-        total = qty * rate
+            product = st.text_input(
+                "Product Name"
+            )
 
-        st.info(f"Sales Total: ₹ {total}")
+            unit = st.selectbox(
+
+                "Sales Unit",
+
+                [
+                    "KG",
+                    "PCS",
+                    "DOZEN",
+                    "BAG"
+                ]
+            )
+
+            qty = st.number_input(
+                "Sales Quantity",
+                min_value=0.0
+            )
+
+        with col2:
+
+            rate = st.number_input(
+                "Sales Rate",
+                min_value=0.0
+            )
+
+            total = qty * rate
+
+            st.info(
+                f"Sales Total: ₹ {total}"
+            )
+
+            payment = st.selectbox(
+
+                "Payment Mode",
+
+                [
+                    "Cash",
+                    "Online",
+                    "Udhari"
+                ]
+            )
+
+            paid = st.number_input(
+                "Received Amount",
+                min_value=0.0
+            )
+
+            balance = total - paid
+
+            st.warning(
+                f"Pending Amount: ₹ {balance}"
+            )
 
         if st.button("Save Sales"):
 
             st.success(
-                "Sales Saved"
+                "Sales Saved Successfully"
             )
 
-        st.divider()
+    # ---------------- EXPENSE ----------------
 
-        st.subheader("Delete Sales Entry")
-
-        delete_sales = st.text_input(
-            "Enter Sales Bill No"
-        )
-
-        if st.button("Delete Sales"):
-
-            st.warning(
-                f"Sales Bill {delete_sales} Deleted"
-            )
-
-    # ---------- EXPENSE ----------
-
-    elif page == "Expense":
+    elif page == "💸 Expense":
 
         st.title("💸 Expense Entry")
 
@@ -331,35 +435,31 @@ else:
         )
 
         amount = st.number_input(
-            "Amount",
+            "Expense Amount",
             min_value=0.0
+        )
+
+        payment = st.selectbox(
+
+            "Payment Mode",
+
+            [
+                "Cash",
+                "Online"
+            ]
         )
 
         if st.button("Save Expense"):
 
             st.success(
-                "Expense Saved"
+                "Expense Saved Successfully"
             )
 
-        st.divider()
+    # ---------------- STOCK ----------------
 
-        st.subheader("Delete Expense")
+    elif page == "📦 Stock":
 
-        delete_expense = st.text_input(
-            "Expense Name Delete"
-        )
-
-        if st.button("Delete Expense Entry"):
-
-            st.warning(
-                f"{delete_expense} Deleted"
-            )
-
-    # ---------- STOCK ----------
-
-    elif page == "Stock":
-
-        st.title("📦 Stock")
+        st.title("📦 Stock Management")
 
         stock_data = {
 
@@ -370,9 +470,15 @@ else:
             ],
 
             "Stock":[
-                20,
-                15,
+                25,
+                10,
                 30
+            ],
+
+            "Unit":[
+                "PCS",
+                "PCS",
+                "KG"
             ]
 
         }
