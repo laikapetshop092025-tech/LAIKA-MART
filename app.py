@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
+import requests
 from datetime import datetime
 import calendar
+
+API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
 st.set_page_config(
     page_title="LAIKA ERP",
@@ -129,6 +132,63 @@ if st.session_state.login == False:
 # ---------------- ERP ----------------
 
 else:
+
+    # ---------- PRODUCT DATA ----------
+
+    products = []
+
+    try:
+
+        product_sheet = pd.read_csv(
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1v_fake/pub?output=csv"
+        )
+
+    except:
+
+        product_sheet = pd.DataFrame()
+
+    sample_products = [
+
+        {
+            "product":"Pedigree",
+            "category":"Dog Food",
+            "unit":"PCS",
+            "purchase_price":900,
+            "sale_price":1100,
+            "stock":20
+        },
+
+        {
+            "product":"Whiskas",
+            "category":"Cat Food",
+            "unit":"PCS",
+            "purchase_price":450,
+            "sale_price":600,
+            "stock":15
+        },
+
+        {
+            "product":"Bird Seeds",
+            "category":"Bird Food",
+            "unit":"KG",
+            "purchase_price":80,
+            "sale_price":120,
+            "stock":30
+        }
+
+    ]
+
+    products = sample_products
+
+    product_names = []
+
+    for item in products:
+
+        product_names.append(
+            item["product"]
+        )
+
+    # ---------- SIDEBAR ----------
 
     st.sidebar.title("🐶 LAIKA ERP")
 
@@ -282,20 +342,33 @@ else:
                 "Supplier Name"
             )
 
-            product = st.text_input(
-                "Product Name"
+            product = st.selectbox(
+                "Product",
+                product_names
             )
+
+            selected_product = {}
+
+            for item in products:
+
+                if item["product"] == product:
+
+                    selected_product = item
 
             unit = st.selectbox(
 
                 "Unit",
 
                 [
-                    "KG",
-                    "PCS",
-                    "DOZEN",
-                    "BAG"
+                    selected_product.get(
+                        "unit",
+                        "PCS"
+                    )
                 ]
+            )
+
+            st.info(
+                f"Current Stock: {selected_product.get('stock',0)}"
             )
 
             qty = st.number_input(
@@ -306,8 +379,15 @@ else:
         with col2:
 
             rate = st.number_input(
+
                 "Rate",
-                min_value=0.0
+
+                value=float(
+                    selected_product.get(
+                        "purchase_price",
+                        0
+                    )
+                )
             )
 
             total = qty * rate
@@ -362,20 +442,34 @@ else:
                 "Customer Name"
             )
 
-            product = st.text_input(
-                "Product Name"
+            product = st.selectbox(
+                "Product",
+                product_names,
+                key="sales_product"
             )
+
+            selected_product = {}
+
+            for item in products:
+
+                if item["product"] == product:
+
+                    selected_product = item
 
             unit = st.selectbox(
 
                 "Sales Unit",
 
                 [
-                    "KG",
-                    "PCS",
-                    "DOZEN",
-                    "BAG"
+                    selected_product.get(
+                        "unit",
+                        "PCS"
+                    )
                 ]
+            )
+
+            st.info(
+                f"Available Stock: {selected_product.get('stock',0)}"
             )
 
             qty = st.number_input(
@@ -386,8 +480,15 @@ else:
         with col2:
 
             rate = st.number_input(
+
                 "Sales Rate",
-                min_value=0.0
+
+                value=float(
+                    selected_product.get(
+                        "sale_price",
+                        0
+                    )
+                )
             )
 
             total = qty * rate
@@ -461,35 +562,24 @@ else:
 
         st.title("📦 Stock Management")
 
-        stock_data = {
-
-            "Product":[
-                "Pedigree",
-                "Whiskas",
-                "Bird Seeds"
-            ],
-
-            "Stock":[
-                25,
-                10,
-                30
-            ],
-
-            "Unit":[
-                "PCS",
-                "PCS",
-                "KG"
-            ]
-
-        }
-
-        df = pd.DataFrame(stock_data)
+        stock_df = pd.DataFrame(products)
 
         st.dataframe(
-            df,
+            stock_df,
             use_container_width=True
         )
 
-        st.warning(
-            "⚠️ Low Stock Alert"
-        )
+        low_stock = stock_df[
+            stock_df["stock"] < 10
+        ]
+
+        if len(low_stock) > 0:
+
+            st.error(
+                "⚠️ Low Stock Products"
+            )
+
+            st.dataframe(
+                low_stock,
+                use_container_width=True
+            )
