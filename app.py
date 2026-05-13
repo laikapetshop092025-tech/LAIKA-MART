@@ -3,23 +3,21 @@ import pandas as pd
 from datetime import datetime
 import calendar
 
-# ---------------- PAGE ----------------
+# ================= PAGE =================
 
 st.set_page_config(
     page_title="LAIKA ERP PRO MAX",
     layout="wide"
 )
 
-# ---------------- SESSION ----------------
+# ================= SESSION =================
 
-default_keys = {
+defaults = {
 
     "login": False,
     "purchase_data": [],
     "sales_data": [],
     "expense_data": [],
-    "customer_payments": [],
-    "supplier_payments": [],
     "pets": [],
     "reward_points": {},
     "purchase_bill": 1001,
@@ -27,30 +25,34 @@ default_keys = {
 
 }
 
-for key, value in default_keys.items():
+for key, value in defaults.items():
 
     if key not in st.session_state:
 
         st.session_state[key] = value
 
-# ---------------- CSS ----------------
+# ================= CSS =================
 
 st.markdown("""
 
 <style>
 
 .main{
-    background:#eef4ff;
+    background:#fdf4ff;
 }
 
+/* SIDEBAR */
+
 [data-testid="stSidebar"]{
-    background:linear-gradient(180deg,#1e3a8a,#4f46e5);
+    background:linear-gradient(180deg,#d8b4fe,#f9a8d4);
     padding-top:20px;
 }
 
 [data-testid="stSidebar"] *{
     color:white;
 }
+
+/* BUTTON */
 
 .stButton>button{
     width:100%;
@@ -59,59 +61,55 @@ st.markdown("""
     padding:12px;
     font-size:16px;
     font-weight:bold;
-    background:linear-gradient(90deg,#2563eb,#7c3aed);
+    background:linear-gradient(90deg,#d946ef,#9333ea);
     color:white;
     transition:0.3s;
 }
 
 .stButton>button:hover{
     transform:scale(1.03);
-    background:linear-gradient(90deg,#1d4ed8,#6d28d9);
-    box-shadow:0 0 15px rgba(0,0,0,0.3);
+    background:linear-gradient(90deg,#c026d3,#7e22ce);
 }
+
+/* CARDS */
 
 .card{
     padding:20px;
-    border-radius:18px;
+    border-radius:20px;
     color:white;
     text-align:center;
-    height:145px;
+    height:150px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     margin-bottom:15px;
-    transition:0.3s;
 }
 
-.card:hover{
-    transform:translateY(-5px);
-}
-
-.blue{
-    background:linear-gradient(135deg,#2563eb,#1d4ed8);
-}
-
-.green{
-    background:linear-gradient(135deg,#059669,#10b981);
-}
-
-.red{
-    background:linear-gradient(135deg,#dc2626,#ef4444);
+.pink{
+    background:linear-gradient(135deg,#f9a8d4,#ec4899);
 }
 
 .purple{
-    background:linear-gradient(135deg,#7c3aed,#9333ea);
+    background:linear-gradient(135deg,#c084fc,#9333ea);
+}
+
+.blue{
+    background:linear-gradient(135deg,#93c5fd,#2563eb);
+}
+
+.green{
+    background:linear-gradient(135deg,#86efac,#16a34a);
 }
 
 .orange{
-    background:linear-gradient(135deg,#ea580c,#f97316);
+    background:linear-gradient(135deg,#fdba74,#ea580c);
 }
 
 </style>
 
 """, unsafe_allow_html=True)
 
-# ---------------- LOGIN ----------------
+# ================= LOGIN =================
 
 if st.session_state.login == False:
 
@@ -133,9 +131,7 @@ if st.session_state.login == False:
 
         else:
 
-            st.error(
-                "Wrong Username or Password"
-            )
+            st.error("Wrong Username or Password")
 
     st.divider()
 
@@ -149,21 +145,17 @@ if st.session_state.login == False:
 
         if forgot_user == "admin":
 
-            st.info(
-                "Password: admin123"
-            )
+            st.info("Password: admin123")
 
         else:
 
-            st.error(
-                "Username Not Found"
-            )
+            st.error("Username Not Found")
 
-# ---------------- ERP ----------------
+# ================= ERP =================
 
 else:
 
-    # ---------------- PRODUCTS ----------------
+    # ================= PRODUCTS =================
 
     products = [
 
@@ -180,8 +172,8 @@ else:
             "Product":"Whiskas",
             "Category":"Cat Food",
             "Unit":"PCS",
-            "Purchase":450,
-            "Sale":600,
+            "Purchase":500,
+            "Sale":700,
             "Stock":15
         },
 
@@ -196,7 +188,7 @@ else:
 
     ]
 
-    # ---------------- STOCK UPDATE ----------------
+    # ================= STOCK UPDATE =================
 
     for p in st.session_state.purchase_data:
 
@@ -220,7 +212,7 @@ else:
         product_df["Product"]
     )
 
-    # ---------------- SIDEBAR ----------------
+    # ================= SIDEBAR =================
 
     st.sidebar.title("🐶 LAIKA ERP")
 
@@ -249,7 +241,7 @@ else:
         ]
     )
 
-    # ---------------- DATE ----------------
+    # ================= DATE =================
 
     today = datetime.now()
 
@@ -261,7 +253,7 @@ else:
         today.weekday()
     ]
 
-    # ---------------- TOTALS ----------------
+    # ================= TOTALS =================
 
     total_sales = sum(
         item.get("Total", 0)
@@ -284,32 +276,30 @@ else:
         - total_expense
     )
 
-    # ---------------- CASH / ONLINE ----------------
+    # ================= CASH / ONLINE =================
 
     total_cash = 0
     total_online = 0
 
     for s in st.session_state.sales_data:
 
-        payment_mode = s.get(
-            "Payment",
-            ""
-        )
+        payment = s.get("Payment", "")
+        paid = s.get("Paid", 0)
 
-        paid_amount = s.get(
-            "Paid",
-            0
-        )
+        if payment == "Cash":
 
-        if payment_mode == "Cash":
+            total_cash += paid
 
-            total_cash += paid_amount
+        elif payment == "Online":
 
-        elif payment_mode == "Online":
+            total_online += paid
 
-            total_online += paid_amount
+    total_collection = (
+        total_cash
+        + total_online
+    )
 
-    # ---------------- DASHBOARD ----------------
+    # ================= DASHBOARD =================
 
     if page == "📊 Dashboard":
 
@@ -325,8 +315,8 @@ else:
 
             st.markdown(f"""
 
-            <div class="card blue">
-            <h3>Today's Sales</h3>
+            <div class="card pink">
+            <h3>Total Sales</h3>
             <h1>₹ {total_sales}</h1>
             </div>
 
@@ -336,8 +326,8 @@ else:
 
             st.markdown(f"""
 
-            <div class="card green">
-            <h3>Today's Purchase</h3>
+            <div class="card purple">
+            <h3>Total Purchase</h3>
             <h1>₹ {total_purchase}</h1>
             </div>
 
@@ -347,8 +337,8 @@ else:
 
             st.markdown(f"""
 
-            <div class="card red">
-            <h3>Today's Expense</h3>
+            <div class="card blue">
+            <h3>Total Expense</h3>
             <h1>₹ {total_expense}</h1>
             </div>
 
@@ -358,8 +348,8 @@ else:
 
             st.markdown(f"""
 
-            <div class="card purple">
-            <h3>Today's Profit</h3>
+            <div class="card green">
+            <h3>Total Profit</h3>
             <h1>₹ {total_profit}</h1>
             </div>
 
@@ -367,53 +357,42 @@ else:
 
         st.divider()
 
-        m1,m2,m3,m4 = st.columns(4)
+        d1,d2,d3 = st.columns(3)
 
-        with m1:
+        with d1:
 
             st.markdown(f"""
 
             <div class="card orange">
-            <h3>Cash</h3>
+            <h3>Cash Collection</h3>
             <h1>₹ {total_cash}</h1>
             </div>
 
             """, unsafe_allow_html=True)
 
-        with m2:
+        with d2:
 
             st.markdown(f"""
 
-            <div class="card blue">
-            <h3>Online</h3>
+            <div class="card pink">
+            <h3>Online Collection</h3>
             <h1>₹ {total_online}</h1>
             </div>
 
             """, unsafe_allow_html=True)
 
-        with m3:
+        with d3:
 
-            st.markdown("""
+            st.markdown(f"""
 
-            <div class="card green">
-            <h3>ERP Status</h3>
-            <h1>ACTIVE</h1>
+            <div class="card purple">
+            <h3>Total Collection</h3>
+            <h1>₹ {total_collection}</h1>
             </div>
 
             """, unsafe_allow_html=True)
 
-        with m4:
-
-            st.markdown("""
-
-            <div class="card red">
-            <h3>Version</h3>
-            <h1>PRO MAX</h1>
-            </div>
-
-            """, unsafe_allow_html=True)
-
-    # ---------------- PURCHASE ----------------
+    # ================= PURCHASE =================
 
     elif page == "🛒 Purchase":
 
@@ -465,9 +444,7 @@ else:
 
             total = qty * rate
 
-            st.info(
-                f"Total: ₹ {total}"
-            )
+            st.info(f"Total: ₹ {total}")
 
             payment = st.selectbox(
 
@@ -511,12 +488,14 @@ else:
             st.session_state.purchase_bill += 1
 
             st.success(
-                "Purchase Saved Successfully"
+                "Purchase Saved"
             )
 
         if len(
             st.session_state.purchase_data
         ) > 0:
+
+            st.subheader("Purchase Entries")
 
             purchase_df = pd.DataFrame(
                 st.session_state.purchase_data
@@ -527,7 +506,34 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- SALES ----------------
+            delete_purchase = st.selectbox(
+
+                "Delete Purchase Bill",
+
+                range(
+                    len(
+                        st.session_state.purchase_data
+                    )
+                ),
+
+                format_func=lambda x:
+                st.session_state.purchase_data[x]["Bill"]
+
+            )
+
+            if st.button("Delete Purchase"):
+
+                st.session_state.purchase_data.pop(
+                    delete_purchase
+                )
+
+                st.success(
+                    "Purchase Deleted"
+                )
+
+                st.rerun()
+
+    # ================= SALES =================
 
     elif page == "💰 Sales":
 
@@ -591,10 +597,6 @@ else:
             )
 
             total = qty * rate
-
-            st.info(
-                f"Sales Total: ₹ {total}"
-            )
 
             reward = int(total / 100) * 50
 
@@ -674,12 +676,14 @@ else:
             st.session_state.sales_bill += 1
 
             st.success(
-                "Sales Saved Successfully"
+                "Sales Saved"
             )
 
         if len(
             st.session_state.sales_data
         ) > 0:
+
+            st.subheader("Sales Entries")
 
             sales_df = pd.DataFrame(
                 st.session_state.sales_data
@@ -690,7 +694,34 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- EXPENSE ----------------
+            delete_sales = st.selectbox(
+
+                "Delete Sales Bill",
+
+                range(
+                    len(
+                        st.session_state.sales_data
+                    )
+                ),
+
+                format_func=lambda x:
+                st.session_state.sales_data[x]["Bill"]
+
+            )
+
+            if st.button("Delete Sales"):
+
+                st.session_state.sales_data.pop(
+                    delete_sales
+                )
+
+                st.success(
+                    "Sales Deleted"
+                )
+
+                st.rerun()
+
+    # ================= EXPENSE =================
 
     elif page == "💸 Expense":
 
@@ -742,7 +773,34 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- STOCK ----------------
+            delete_expense = st.selectbox(
+
+                "Delete Expense",
+
+                range(
+                    len(
+                        st.session_state.expense_data
+                    )
+                ),
+
+                format_func=lambda x:
+                st.session_state.expense_data[x]["Expense"]
+
+            )
+
+            if st.button("Delete Expense Entry"):
+
+                st.session_state.expense_data.pop(
+                    delete_expense
+                )
+
+                st.success(
+                    "Expense Deleted"
+                )
+
+                st.rerun()
+
+    # ================= STOCK =================
 
     elif page == "📦 Stock":
 
@@ -753,7 +811,7 @@ else:
             use_container_width=True
         )
 
-    # ---------------- CUSTOMER LEDGER ----------------
+    # ================= CUSTOMER LEDGER =================
 
     elif page == "📒 Customer Ledger":
 
@@ -772,7 +830,7 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- SUPPLIER LEDGER ----------------
+    # ================= SUPPLIER LEDGER =================
 
     elif page == "🏪 Supplier Ledger":
 
@@ -791,7 +849,7 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- PET REGISTER ----------------
+    # ================= PET REGISTER =================
 
     elif page == "🐾 Pet Register":
 
@@ -859,7 +917,7 @@ else:
             })
 
             st.success(
-                "Pet Registered Successfully"
+                "Pet Registered"
             )
 
         if len(
@@ -875,7 +933,7 @@ else:
                 use_container_width=True
             )
 
-    # ---------------- ANALYTICS ----------------
+    # ================= ANALYTICS =================
 
     elif page == "📈 Analytics":
 
@@ -905,7 +963,7 @@ else:
             )
         )
 
-    # ---------------- DAILY CLOSING ----------------
+    # ================= DAILY CLOSING =================
 
     elif page == "🧾 Daily Closing":
 
@@ -918,7 +976,8 @@ else:
             "Expense":[total_expense],
             "Profit":[total_profit],
             "Cash":[total_cash],
-            "Online":[total_online]
+            "Online":[total_online],
+            "Collection":[total_collection]
 
         })
 
