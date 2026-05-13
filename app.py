@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import calendar
-import plotly.express as px
 
 # ---------------- PAGE ----------------
 
@@ -304,9 +303,9 @@ else:
 
         st.subheader("📈 Business Analytics")
 
-        chart_df = pd.DataFrame({
+        chart_data = pd.DataFrame({
 
-            "Type":[
+            "Category":[
                 "Sales",
                 "Purchase",
                 "Expense",
@@ -322,16 +321,10 @@ else:
 
         })
 
-        fig = px.bar(
-            chart_df,
-            x="Type",
-            y="Amount",
-            title="Business Report"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
+        st.bar_chart(
+            chart_data.set_index(
+                "Category"
+            )
         )
 
     # ---------------- PURCHASE ----------------
@@ -713,16 +706,10 @@ else:
 
         })
 
-        pie_chart = px.pie(
-            analytics_df,
-            names="Category",
-            values="Amount",
-            title="Business Distribution"
-        )
-
-        st.plotly_chart(
-            pie_chart,
-            use_container_width=True
+        st.bar_chart(
+            analytics_df.set_index(
+                "Category"
+            )
         )
 
     # ---------------- DAILY CLOSING ----------------
