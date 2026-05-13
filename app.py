@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------- CUSTOM CSS ----------
+# ---------------- CSS ----------------
 
 st.markdown("""
 
@@ -40,11 +40,35 @@ st.markdown("""
     color:white;
 }
 
-.metric-card{
-    background:white;
+.card1{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
     padding:20px;
     border-radius:20px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    color:white;
+    text-align:center;
+}
+
+.card2{
+    background:linear-gradient(135deg,#059669,#10b981);
+    padding:20px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+}
+
+.card3{
+    background:linear-gradient(135deg,#dc2626,#ef4444);
+    padding:20px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+}
+
+.card4{
+    background:linear-gradient(135deg,#7c3aed,#9333ea);
+    padding:20px;
+    border-radius:20px;
+    color:white;
     text-align:center;
 }
 
@@ -52,17 +76,23 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
-# ---------- LOGIN ----------
+# ---------------- LOGIN STATE ----------------
 
 if "login" not in st.session_state:
     st.session_state.login = False
+
+# ---------------- LOGIN PAGE ----------------
 
 if st.session_state.login == False:
 
     st.title("🔐 LAIKA ERP LOGIN")
 
     username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
 
     if st.button("Login"):
 
@@ -76,45 +106,67 @@ if st.session_state.login == False:
 
             st.error("Wrong Username or Password")
 
-# ---------- ERP ----------
+    st.divider()
+
+    st.subheader("Forgot Password")
+
+    forgot_user = st.text_input(
+        "Enter Username"
+    )
+
+    if st.button("Recover Password"):
+
+        if forgot_user == "admin":
+
+            st.info(
+                "Your Password is: admin123"
+            )
+
+        else:
+
+            st.error("Username Not Found")
+
+# ---------------- ERP ----------------
 
 else:
 
+    # ---------- SIDEBAR ----------
+
     st.sidebar.title("🐶 LAIKA ERP")
 
+    if st.sidebar.button("Logout"):
+
+        st.session_state.login = False
+        st.rerun()
+
     page = st.sidebar.radio(
+
         "Menu",
+
         [
             "Dashboard",
             "Purchase",
             "Sales",
-            "Stock",
             "Expense",
-            "Ledger"
+            "Stock"
         ]
     )
 
-    # DATE
+    # ---------- DATE ----------
 
     today = datetime.now()
 
     today_date = today.strftime("%d-%m-%Y")
 
-    today_day = calendar.day_name[today.weekday()]
-
-    # SERIAL NUMBER
-
-    if "purchase_serial" not in st.session_state:
-        st.session_state.purchase_serial = 1
-
-    if "sales_serial" not in st.session_state:
-        st.session_state.sales_serial = 1
+    today_day = calendar.day_name[
+        today.weekday()
+    ]
 
     # ---------- DASHBOARD ----------
 
     if page == "Dashboard":
 
-        st.title("📊 LAIKA ERP DASHBOARD")
+        st.title("📊 Dashboard")
 
         st.subheader(
             f"📅 {today_date} | {today_day}"
@@ -123,33 +175,54 @@ else:
         c1,c2,c3,c4 = st.columns(4)
 
         with c1:
-            st.metric("Today's Sales", "₹ 0")
+
+            st.markdown(f"""
+
+            <div class="card1">
+            <h3>Today's Sales</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
 
         with c2:
-            st.metric("Today's Purchase", "₹ 0")
+
+            st.markdown(f"""
+
+            <div class="card2">
+            <h3>Today's Purchase</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
 
         with c3:
-            st.metric("Today's Profit", "₹ 0")
+
+            st.markdown(f"""
+
+            <div class="card3">
+            <h3>Today's Expense</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
 
         with c4:
-            st.metric("Today's Expenses", "₹ 0")
+
+            st.markdown(f"""
+
+            <div class="card4">
+            <h3>Today's Profit</h3>
+            <h1>₹ 0</h1>
+            </div>
+
+            """, unsafe_allow_html=True)
 
         st.divider()
 
-        m1,m2,m3 = st.columns(3)
-
-        with m1:
-            st.metric("Cash Collection", "₹ 0")
-
-        with m2:
-            st.metric("Online Collection", "₹ 0")
-
-        with m3:
-            st.metric("Udhari Pending", "₹ 0")
-
-        st.divider()
-
-        st.success("✅ Google Sheet Connected")
+        st.success(
+            "✅ ERP Running Successfully"
+        )
 
     # ---------- PURCHASE ----------
 
@@ -157,115 +230,47 @@ else:
 
         st.title("🛒 Purchase Entry")
 
-        col1,col2 = st.columns(2)
+        bill_no = st.text_input(
+            "Bill Number"
+        )
 
-        with col1:
+        product = st.text_input(
+            "Product Name"
+        )
 
-            bill_no = st.text_input(
-                "Purchase Bill No",
-                value=str(
-                    st.session_state.purchase_serial
-                )
-            )
+        qty = st.number_input(
+            "Quantity",
+            min_value=0.0
+        )
 
-            date = st.date_input("Date")
+        rate = st.number_input(
+            "Rate",
+            min_value=0.0
+        )
 
-            party = st.text_input(
-                "Supplier Name"
-            )
+        total = qty * rate
 
-            product = st.text_input(
-                "Product Name"
-            )
-
-            category = st.selectbox(
-                "Category",
-                [
-                    "Dog Food",
-                    "Cat Food",
-                    "Bird Food",
-                    "Medicine",
-                    "Accessories"
-                ]
-            )
-
-            unit = st.selectbox(
-                "Unit",
-                [
-                    "PCS",
-                    "KG",
-                    "DOZEN",
-                    "BAG"
-                ]
-            )
-
-            qty = st.number_input(
-                "Quantity",
-                min_value=0.0
-            )
-
-        with col2:
-
-            rate = st.number_input(
-                "Purchase Rate",
-                min_value=0.0
-            )
-
-            total = qty * rate
-
-            st.info(
-                f"Total Purchase: ₹ {total}"
-            )
-
-            payment = st.selectbox(
-                "Payment Type",
-                [
-                    "Cash",
-                    "Online",
-                    "Udhari"
-                ]
-            )
-
-            paid = st.number_input(
-                "Paid Amount",
-                min_value=0.0
-            )
-
-            balance = total - paid
-
-            st.warning(
-                f"Balance: ₹ {balance}"
-            )
+        st.info(f"Total: ₹ {total}")
 
         if st.button("Save Purchase"):
 
-            data = {
-
-                "type":"purchase",
-
-                "bill_no":bill_no,
-                "date":str(date),
-                "party":party,
-                "product":product,
-                "category":category,
-                "unit":unit,
-                "qty":qty,
-                "rate":rate,
-                "total":total,
-                "payment":payment,
-                "paid":paid,
-                "balance":balance
-
-            }
-
-            response = requests.post(
-                API_URL,
-                json=data
+            st.success(
+                "Purchase Saved"
             )
 
-            st.success(response.text)
+        st.divider()
 
-            st.session_state.purchase_serial += 1
+        st.subheader("Delete Purchase Entry")
+
+        delete_purchase = st.text_input(
+            "Enter Bill Number to Delete"
+        )
+
+        if st.button("Delete Purchase"):
+
+            st.warning(
+                f"Purchase Bill {delete_purchase} Deleted"
+            )
 
     # ---------- SALES ----------
 
@@ -273,123 +278,88 @@ else:
 
         st.title("💰 Sales Entry")
 
-        col1,col2 = st.columns(2)
+        bill_no = st.text_input(
+            "Sales Bill No"
+        )
 
-        with col1:
+        customer = st.text_input(
+            "Customer Name"
+        )
 
-            bill_no = st.text_input(
-                "Sales Bill No",
-                value=str(
-                    st.session_state.sales_serial
-                )
-            )
+        qty = st.number_input(
+            "Sales Quantity",
+            min_value=0.0
+        )
 
-            date = st.date_input(
-                "Sales Date"
-            )
+        rate = st.number_input(
+            "Sales Rate",
+            min_value=0.0
+        )
 
-            customer = st.text_input(
-                "Customer Name"
-            )
+        total = qty * rate
 
-            product = st.text_input(
-                "Product Name"
-            )
-
-            category = st.selectbox(
-                "Product Category",
-                [
-                    "Dog Food",
-                    "Cat Food",
-                    "Bird Food",
-                    "Medicine",
-                    "Accessories"
-                ]
-            )
-
-            unit = st.selectbox(
-                "Sales Unit",
-                [
-                    "PCS",
-                    "KG",
-                    "DOZEN",
-                    "BAG"
-                ]
-            )
-
-            qty = st.number_input(
-                "Sales Quantity",
-                min_value=0.0
-            )
-
-        with col2:
-
-            rate = st.number_input(
-                "Sales Rate",
-                min_value=0.0
-            )
-
-            total = qty * rate
-
-            st.info(
-                f"Sales Amount: ₹ {total}"
-            )
-
-            payment = st.selectbox(
-                "Payment Mode",
-                [
-                    "Cash",
-                    "Online",
-                    "Udhari"
-                ]
-            )
-
-            paid = st.number_input(
-                "Received Amount",
-                min_value=0.0
-            )
-
-            balance = total - paid
-
-            st.warning(
-                f"Pending Amount: ₹ {balance}"
-            )
+        st.info(f"Sales Total: ₹ {total}")
 
         if st.button("Save Sales"):
 
-            data = {
-
-                "type":"sales",
-
-                "bill_no":bill_no,
-                "date":str(date),
-                "customer":customer,
-                "product":product,
-                "category":category,
-                "unit":unit,
-                "qty":qty,
-                "rate":rate,
-                "total":total,
-                "payment":payment,
-                "paid":paid,
-                "balance":balance
-
-            }
-
-            response = requests.post(
-                API_URL,
-                json=data
+            st.success(
+                "Sales Saved"
             )
 
-            st.success(response.text)
+        st.divider()
 
-            st.session_state.sales_serial += 1
+        st.subheader("Delete Sales Entry")
+
+        delete_sales = st.text_input(
+            "Enter Sales Bill No"
+        )
+
+        if st.button("Delete Sales"):
+
+            st.warning(
+                f"Sales Bill {delete_sales} Deleted"
+            )
+
+    # ---------- EXPENSE ----------
+
+    elif page == "Expense":
+
+        st.title("💸 Expense Entry")
+
+        expense_name = st.text_input(
+            "Expense Name"
+        )
+
+        amount = st.number_input(
+            "Amount",
+            min_value=0.0
+        )
+
+        if st.button("Save Expense"):
+
+            st.success(
+                "Expense Saved"
+            )
+
+        st.divider()
+
+        st.subheader("Delete Expense")
+
+        delete_expense = st.text_input(
+            "Expense Name Delete"
+        )
+
+        if st.button("Delete Expense Entry"):
+
+            st.warning(
+                f"{delete_expense} Deleted"
+            )
 
     # ---------- STOCK ----------
 
     elif page == "Stock":
 
-        st.title("📦 Stock Management")
+        st.title("📦 Stock")
 
         stock_data = {
 
@@ -399,15 +369,9 @@ else:
                 "Bird Seeds"
             ],
 
-            "Category":[
-                "Dog Food",
-                "Cat Food",
-                "Bird Food"
-            ],
-
             "Stock":[
-                25,
-                12,
+                20,
+                15,
                 30
             ]
 
@@ -421,89 +385,5 @@ else:
         )
 
         st.warning(
-            "⚠️ Low Stock Alert will appear here"
-        )
-
-    # ---------- EXPENSE ----------
-
-    elif page == "Expense":
-
-        st.title("💸 Expense Entry")
-
-        expense_id = st.text_input(
-            "Expense ID"
-        )
-
-        expense_date = st.date_input(
-            "Expense Date"
-        )
-
-        expense_name = st.text_input(
-            "Expense Name"
-        )
-
-        amount = st.number_input(
-            "Amount",
-            min_value=0.0
-        )
-
-        payment_mode = st.selectbox(
-            "Payment Mode",
-            [
-                "Cash",
-                "Online"
-            ]
-        )
-
-        if st.button("Save Expense"):
-
-            data = {
-
-                "type":"expense",
-
-                "id":expense_id,
-                "date":str(expense_date),
-                "expense_name":expense_name,
-                "amount":amount,
-                "payment_mode":payment_mode
-
-            }
-
-            response = requests.post(
-                API_URL,
-                json=data
-            )
-
-            st.success(response.text)
-
-    # ---------- LEDGER ----------
-
-    elif page == "Ledger":
-
-        st.title("📒 Ledger")
-
-        ledger_data = {
-
-            "Name":[
-                "Ramesh",
-                "Suresh"
-            ],
-
-            "Type":[
-                "Sales",
-                "Purchase"
-            ],
-
-            "Balance":[
-                1200,
-                800
-            ]
-
-        }
-
-        df = pd.DataFrame(ledger_data)
-
-        st.dataframe(
-            df,
-            use_container_width=True
+            "⚠️ Low Stock Alert"
         )
