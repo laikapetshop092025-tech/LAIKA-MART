@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import requests
+from datetime import datetime
+import calendar
 
 API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
@@ -9,17 +11,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# CUSTOM CSS
+# CSS
 
 st.markdown("""
 
 <style>
 
-.main {
-    background-color:#eef4ff;
+.main{
+    background:#eef4ff;
 }
 
-.stButton>button {
+.stButton>button{
     background:linear-gradient(90deg,#1f4ed8,#4f46e5);
     color:white;
     border:none;
@@ -34,6 +36,14 @@ st.markdown("""
 
 [data-testid="stSidebar"] *{
     color:white;
+}
+
+.metric-box{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    text-align:center;
 }
 
 </style>
@@ -53,32 +63,96 @@ page = st.sidebar.radio(
     ]
 )
 
+# DATE
+
+today = datetime.now()
+
+today_date = today.strftime("%d-%m-%Y")
+
+today_day = calendar.day_name[today.weekday()]
+
+# AUTO SERIAL
+
+if "purchase_serial" not in st.session_state:
+    st.session_state.purchase_serial = 1
+
+if "sales_serial" not in st.session_state:
+    st.session_state.sales_serial = 1
+
 # DASHBOARD
 
 if page == "Dashboard":
 
     st.title("📊 Dashboard")
 
+    st.subheader(
+        f"📅 {today_date} | {today_day}"
+    )
+
     col1,col2,col3 = st.columns(3)
 
-    col1.metric(
-        "ERP Status",
-        "Running"
-    )
+    with col1:
 
-    col2.metric(
-        "Database",
-        "Connected"
-    )
+        st.metric(
+            "Today's Sales",
+            "₹ 0"
+        )
 
-    col3.metric(
-        "Version",
-        "1.0"
-    )
+        st.metric(
+            "Today's Cash",
+            "₹ 0"
+        )
 
-    st.success(
-        "Google Sheet Connected Successfully"
-    )
+    with col2:
+
+        st.metric(
+            "Today's Purchase",
+            "₹ 0"
+        )
+
+        st.metric(
+            "Today's Online",
+            "₹ 0"
+        )
+
+    with col3:
+
+        st.metric(
+            "Today's Profit",
+            "₹ 0"
+        )
+
+        st.metric(
+            "Cash + Online",
+            "₹ 0"
+        )
+
+    st.divider()
+
+    st.subheader("📈 Monthly Report")
+
+    m1,m2,m3 = st.columns(3)
+
+    with m1:
+
+        st.metric(
+            "Monthly Sales",
+            "₹ 0"
+        )
+
+    with m2:
+
+        st.metric(
+            "Monthly Purchase",
+            "₹ 0"
+        )
+
+    with m3:
+
+        st.metric(
+            "Monthly Profit",
+            "₹ 0"
+        )
 
 # PURCHASE
 
@@ -91,7 +165,10 @@ elif page == "Purchase":
     with col1:
 
         bill_no = st.text_input(
-            "Bill Number"
+            "Purchase Serial Number",
+            value=str(
+                st.session_state.purchase_serial
+            )
         )
 
         date = st.date_input(
@@ -183,6 +260,8 @@ elif page == "Purchase":
             response.text
         )
 
+        st.session_state.purchase_serial += 1
+
 # SALES
 
 elif page == "Sales":
@@ -194,7 +273,10 @@ elif page == "Sales":
     with col1:
 
         bill_no = st.text_input(
-            "Sales Bill Number"
+            "Sales Serial Number",
+            value=str(
+                st.session_state.sales_serial
+            )
         )
 
         date = st.date_input(
@@ -285,3 +367,5 @@ elif page == "Sales":
         st.success(
             response.text
         )
+
+        st.session_state.sales_serial += 1
