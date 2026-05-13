@@ -543,14 +543,3 @@ elif page == "Supplier Ledger":
             st.success("Supplier Payment Updated")
 
 ```
-
-## Final Steps
-
-1. Open your GitHub repository.
-2. Open `app.py`
-3. Delete old code.
-4. Paste this full code.
-5. Click `Commit Changes`
-6. Open Streamlit.
-7. Click `Reboot App`
-8. Done ✅
