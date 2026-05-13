@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import requests
+
+API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
 st.set_page_config(
     page_title="Laika ERP",
@@ -12,16 +15,8 @@ st.sidebar.title("🐶 Laika ERP")
 
 page = st.sidebar.radio(
     "Menu",
-    ["Dashboard", "Purchase", "Stock"]
+    ["Dashboard", "Purchase"]
 )
-
-# DATA STORAGE
-
-if "stock" not in st.session_state:
-    st.session_state.stock = []
-
-if "purchase" not in st.session_state:
-    st.session_state.purchase = []
 
 # DASHBOARD
 
@@ -29,18 +24,8 @@ if page == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    total_products = len(st.session_state.stock)
-
-    col1, col2 = st.columns(2)
-
-    col1.metric(
-        "Total Products",
-        total_products
-    )
-
-    col2.metric(
-        "Total Purchase Entries",
-        len(st.session_state.purchase)
+    st.success(
+        "Google Sheet Connected Successfully"
     )
 
 # PURCHASE
@@ -49,13 +34,21 @@ elif page == "Purchase":
 
     st.title("🛒 Purchase Entry")
 
-    bill_no = st.text_input("Bill Number")
+    bill_no = st.text_input(
+        "Bill Number"
+    )
 
-    date = st.date_input("Date")
+    date = st.date_input(
+        "Date"
+    )
 
-    party = st.text_input("Party Name")
+    party = st.text_input(
+        "Party Name"
+    )
 
-    product = st.text_input("Product Name")
+    product = st.text_input(
+        "Product Name"
+    )
 
     unit = st.selectbox(
         "Unit",
@@ -74,7 +67,9 @@ elif page == "Purchase":
 
     total = qty * rate
 
-    st.info(f"Total Amount: ₹ {total}")
+    st.info(
+        f"Total Amount: ₹ {total}"
+    )
 
     payment = st.selectbox(
         "Payment Type",
@@ -88,62 +83,35 @@ elif page == "Purchase":
 
     balance = total - paid
 
-    st.warning(f"Balance: ₹ {balance}")
+    st.warning(
+        f"Balance: ₹ {balance}"
+    )
 
     if st.button("Save Purchase"):
 
-        purchase_data = {
+        data = {
 
-            "Bill No": bill_no,
-            "Date": str(date),
-            "Party": party,
-            "Product": product,
-            "Unit": unit,
-            "Qty": qty,
-            "Rate": rate,
-            "Total": total,
-            "Payment": payment,
-            "Paid": paid,
-            "Balance": balance
+            "type":"purchase",
 
-        }
-
-        stock_data = {
-
-            "Product": product,
-            "Qty": qty,
-            "Price": rate,
-            "Unit": unit
+            "bill_no":bill_no,
+            "date":str(date),
+            "party":party,
+            "product":product,
+            "unit":unit,
+            "qty":qty,
+            "rate":rate,
+            "total":total,
+            "payment":payment,
+            "paid":paid,
+            "balance":balance
 
         }
 
-        st.session_state.purchase.append(
-            purchase_data
+        response = requests.post(
+            API_URL,
+            json=data
         )
 
-        st.session_state.stock.append(
-            stock_data
-        )
-
-        st.success("Purchase Saved Successfully")
-
-# STOCK
-
-elif page == "Stock":
-
-    st.title("📦 Stock")
-
-    if len(st.session_state.stock) == 0:
-
-        st.warning("No Stock Available")
-
-    else:
-
-        stock_df = pd.DataFrame(
-            st.session_state.stock
-        )
-
-        st.dataframe(
-            stock_df,
-            use_container_width=True
+        st.success(
+            response.text
         )
