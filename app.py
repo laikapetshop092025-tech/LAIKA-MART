@@ -56,12 +56,10 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
-# ================= LOGIN SESSION =================
+# ================= LOGIN =================
 
 if "login" not in st.session_state:
     st.session_state.login = False
-
-# ================= LOGIN PAGE =================
 
 if not st.session_state.login:
 
@@ -87,13 +85,11 @@ if not st.session_state.login:
 
         else:
 
-            st.error(
-                "Wrong ID Password"
-            )
+            st.error("Wrong ID Password")
 
     st.stop()
 
-# ================= SESSION DATA =================
+# ================= SESSION =================
 
 if "purchase_data" not in st.session_state:
     st.session_state.purchase_data = []
@@ -162,13 +158,13 @@ online_total = 0
 
 for p in st.session_state.purchase_data:
 
-    today_purchase += p["Total"]
+    today_purchase += p.get("Total",0)
 
 # SALES TOTAL
 
 for s in st.session_state.sales_data:
 
-    today_sales += s["Total"]
+    today_sales += s.get("Total",0)
 
     purchase_price = s.get(
         "Purchase Price",
@@ -176,8 +172,8 @@ for s in st.session_state.sales_data:
     )
 
     profit = (
-        s["Total"]
-        - (s["Qty"] * purchase_price)
+        s.get("Total",0)
+        - (s.get("Qty",0) * purchase_price)
     )
 
     today_profit += profit
@@ -230,10 +226,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>💰 Today Sales</h3>
         <h2>₹ {today_sales}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -241,10 +235,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>💵 Cash Receive</h3>
         <h2>₹ {cash_total}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -254,10 +246,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>🛒 Today Purchase</h3>
         <h2>₹ {today_purchase}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -265,10 +255,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>📲 Online Receive</h3>
         <h2>₹ {online_total}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -278,10 +266,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>📈 Today Profit</h3>
         <h2>₹ {today_profit}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -289,10 +275,8 @@ if page == "📊 Dashboard":
         st.markdown(f"""
 
         <div class="metric-card">
-
         <h3>💳 Total Receive</h3>
         <h2>₹ {cash_total + online_total}</h2>
-
         </div>
 
         """, unsafe_allow_html=True)
@@ -323,16 +307,13 @@ elif page == "🛒 Purchase":
         )
 
         unit = st.selectbox(
-
             "Unit",
-
             [
                 "KG",
                 "PCS",
                 "DOZEN",
                 "BAG"
             ]
-
         )
 
         qty = st.number_input(
@@ -350,15 +331,12 @@ elif page == "🛒 Purchase":
         total = qty * rate
 
         payment = st.selectbox(
-
             "Payment Type",
-
             [
                 "Cash",
                 "Online",
                 "Udhari"
             ]
-
         )
 
         paid = st.number_input(
@@ -368,13 +346,9 @@ elif page == "🛒 Purchase":
 
         balance = total - paid
 
-        st.info(
-            f"Total Amount ₹ {total}"
-        )
+        st.info(f"Total ₹ {total}")
 
-        st.warning(
-            f"Balance ₹ {balance}"
-        )
+        st.warning(f"Balance ₹ {balance}")
 
     if st.button("SAVE PURCHASE"):
 
@@ -420,11 +394,7 @@ elif page == "🛒 Purchase":
 
         st.session_state.purchase_no += 1
 
-        st.success(
-            "Purchase Saved"
-        )
-
-    st.divider()
+        st.success("Purchase Saved")
 
     if len(
         st.session_state.purchase_data
@@ -440,28 +410,6 @@ elif page == "🛒 Purchase":
 
         )
 
-        delete_purchase = st.selectbox(
-
-            "Delete Purchase Entry",
-
-            range(
-                len(
-                    st.session_state.purchase_data
-                )
-            )
-
-        )
-
-        if st.button("DELETE PURCHASE"):
-
-            st.session_state.purchase_data.pop(
-                delete_purchase
-            )
-
-            st.success("Deleted")
-
-            st.rerun()
-
 # ================= SALES =================
 
 elif page == "💰 Sales":
@@ -473,13 +421,10 @@ elif page == "💰 Sales":
     with c1:
 
         bill = st.text_input(
-
             "Sales Bill No",
-
             value=str(
                 st.session_state.sales_no
             )
-
         )
 
         customer = st.text_input(
@@ -491,16 +436,13 @@ elif page == "💰 Sales":
         )
 
         unit = st.selectbox(
-
             "Sales Unit",
-
             [
                 "KG",
                 "PCS",
                 "DOZEN",
                 "BAG"
             ]
-
         )
 
         qty = st.number_input(
@@ -518,16 +460,13 @@ elif page == "💰 Sales":
         total = qty * sale_rate
 
         payment = st.selectbox(
-
             "Payment Type",
-
             [
                 "Cash",
                 "Online",
                 "Udhari",
                 "Mixed"
             ]
-
         )
 
         cash_amount = st.number_input(
@@ -547,13 +486,9 @@ elif page == "💰 Sales":
 
         balance = total - paid
 
-        st.info(
-            f"Total Amount ₹ {total}"
-        )
+        st.info(f"Total ₹ {total}")
 
-        st.warning(
-            f"Balance ₹ {balance}"
-        )
+        st.warning(f"Balance ₹ {balance}")
 
     purchase_price = 0
 
@@ -601,11 +536,7 @@ elif page == "💰 Sales":
 
         st.session_state.sales_no += 1
 
-        st.success(
-            "Sales Saved"
-        )
-
-    st.divider()
+        st.success("Sales Saved")
 
     if len(
         st.session_state.sales_data
@@ -620,28 +551,6 @@ elif page == "💰 Sales":
             use_container_width=True
 
         )
-
-        delete_sales = st.selectbox(
-
-            "Delete Sales Entry",
-
-            range(
-                len(
-                    st.session_state.sales_data
-                )
-            )
-
-        )
-
-        if st.button("DELETE SALES"):
-
-            st.session_state.sales_data.pop(
-                delete_sales
-            )
-
-            st.success("Deleted")
-
-            st.rerun()
 
 # ================= STOCK =================
 
@@ -713,9 +622,9 @@ elif page == "📒 Customer Ledger":
 
             f"""
 
-            {st.session_state.sales_data[x]['Customer']}
+            {st.session_state.sales_data[x].get('Customer','')}
             | Pending:
-            ₹ {st.session_state.sales_data[x]['Balance']}
+            ₹ {st.session_state.sales_data[x].get('Balance',0)}
 
             """
 
@@ -726,6 +635,18 @@ elif page == "📒 Customer Ledger":
                 selected
             ]
         )
+
+        if "Paid" not in customer_data:
+            customer_data["Paid"] = 0
+
+        if "Balance" not in customer_data:
+            customer_data["Balance"] = 0
+
+        if "Cash Amount" not in customer_data:
+            customer_data["Cash Amount"] = 0
+
+        if "Online Amount" not in customer_data:
+            customer_data["Online Amount"] = 0
 
         c1,c2 = st.columns(2)
 
@@ -748,6 +669,10 @@ elif page == "📒 Customer Ledger":
             + receive_online
         )
 
+        st.info(
+            f"Total Receive ₹ {receive_total}"
+        )
+
         if st.button("RECEIVE PAYMENT"):
 
             customer_data["Paid"] += receive_total
@@ -767,7 +692,7 @@ elif page == "📒 Customer Ledger":
             ] += receive_online
 
             st.success(
-                "Payment Received"
+                "Payment Received Successfully"
             )
 
             st.rerun()
@@ -813,14 +738,11 @@ elif page == "💸 Expense":
     )
 
     payment = st.selectbox(
-
         "Payment Mode",
-
         [
             "Cash",
             "Online"
         ]
-
     )
 
     if st.button("SAVE EXPENSE"):
@@ -833,9 +755,7 @@ elif page == "💸 Expense":
 
         })
 
-        st.success(
-            "Expense Saved"
-        )
+        st.success("Expense Saved")
 
     if len(
         st.session_state.expense_data
@@ -866,16 +786,13 @@ elif page == "🐶 Pet Register":
     )
 
     pet_type = st.selectbox(
-
         "Pet Type",
-
         [
             "Dog",
             "Cat",
             "Bird",
             "Fish"
         ]
-
     )
 
     mobile = st.text_input(
@@ -893,9 +810,7 @@ elif page == "🐶 Pet Register":
 
         })
 
-        st.success(
-            "Pet Saved"
-        )
+        st.success("Pet Saved")
 
     if len(
         st.session_state.pet_data
