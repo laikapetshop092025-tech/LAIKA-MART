@@ -3,25 +3,25 @@ import pandas as pd
 from datetime import datetime
 import calendar
 
-# ================= PAGE =================
+# ================= PAGE CONFIG =================
 
 st.set_page_config(
     page_title="LAIKA ERP",
     layout="wide"
 )
 
-# ================= CSS =================
+# ================= CUSTOM CSS =================
 
 st.markdown("""
 
 <style>
 
 .main{
-    background:linear-gradient(135deg,#fdf2f8,#ede9fe);
+    background:linear-gradient(135deg,#faf5ff,#fdf2f8);
 }
 
 [data-testid="stSidebar"]{
-    background:linear-gradient(180deg,#7c3aed,#ec4899);
+    background:linear-gradient(180deg,#9333ea,#ec4899);
 }
 
 [data-testid="stSidebar"] *{
@@ -31,8 +31,8 @@ st.markdown("""
 .stButton>button{
     width:100%;
     border:none;
-    border-radius:12px;
-    background:linear-gradient(90deg,#8b5cf6,#ec4899);
+    border-radius:14px;
+    background:linear-gradient(90deg,#9333ea,#ec4899);
     color:white;
     font-weight:bold;
     padding:12px;
@@ -41,7 +41,6 @@ st.markdown("""
 
 .stButton>button:hover{
     transform:scale(1.03);
-    background:linear-gradient(90deg,#ec4899,#8b5cf6);
 }
 
 .metric-card{
@@ -57,22 +56,25 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
-# ================= LOGIN =================
+# ================= LOGIN SESSION =================
 
 if "login" not in st.session_state:
     st.session_state.login = False
+
+# ================= LOGIN PAGE =================
 
 if not st.session_state.login:
 
     st.title("🔐 LAIKA ERP LOGIN")
 
     username = st.text_input("User ID")
+
     password = st.text_input(
         "Password",
         type="password"
     )
 
-    if st.button("Login"):
+    if st.button("LOGIN"):
 
         if (
             username == "admin"
@@ -85,11 +87,13 @@ if not st.session_state.login:
 
         else:
 
-            st.error("Wrong ID Password")
+            st.error(
+                "Wrong ID Password"
+            )
 
     st.stop()
 
-# ================= SESSION =================
+# ================= SESSION DATA =================
 
 if "purchase_data" not in st.session_state:
     st.session_state.purchase_data = []
@@ -97,11 +101,11 @@ if "purchase_data" not in st.session_state:
 if "sales_data" not in st.session_state:
     st.session_state.sales_data = []
 
-if "expense_data" not in st.session_state:
-    st.session_state.expense_data = []
-
 if "stock_data" not in st.session_state:
     st.session_state.stock_data = []
+
+if "expense_data" not in st.session_state:
+    st.session_state.expense_data = []
 
 if "pet_data" not in st.session_state:
     st.session_state.pet_data = []
@@ -145,7 +149,7 @@ today_day = calendar.day_name[
     today.weekday()
 ]
 
-# ================= CALCULATION =================
+# ================= DASHBOARD VALUES =================
 
 today_sales = 0
 today_purchase = 0
@@ -154,21 +158,26 @@ today_profit = 0
 cash_total = 0
 online_total = 0
 
-# PURCHASE
+# PURCHASE TOTAL
 
 for p in st.session_state.purchase_data:
 
     today_purchase += p["Total"]
 
-# SALES
+# SALES TOTAL
 
 for s in st.session_state.sales_data:
 
     today_sales += s["Total"]
 
+    purchase_price = s.get(
+        "Purchase Price",
+        0
+    )
+
     profit = (
         s["Total"]
-        - (s["Qty"] * s["Purchase Price"])
+        - (s["Qty"] * purchase_price)
     )
 
     today_profit += profit
@@ -180,11 +189,17 @@ for s in st.session_state.sales_data:
 
     if payment_type == "Cash":
 
-        cash_total += s["Paid"]
+        cash_total += s.get(
+            "Paid",
+            0
+        )
 
     elif payment_type == "Online":
 
-        online_total += s["Paid"]
+        online_total += s.get(
+            "Paid",
+            0
+        )
 
     elif payment_type == "Mixed":
 
@@ -227,7 +242,7 @@ if page == "📊 Dashboard":
 
         <div class="metric-card">
 
-        <h3>💵 Cash</h3>
+        <h3>💵 Cash Receive</h3>
         <h2>₹ {cash_total}</h2>
 
         </div>
@@ -240,7 +255,7 @@ if page == "📊 Dashboard":
 
         <div class="metric-card">
 
-        <h3>🛒 Purchase</h3>
+        <h3>🛒 Today Purchase</h3>
         <h2>₹ {today_purchase}</h2>
 
         </div>
@@ -251,7 +266,7 @@ if page == "📊 Dashboard":
 
         <div class="metric-card">
 
-        <h3>📲 Online</h3>
+        <h3>📲 Online Receive</h3>
         <h2>₹ {online_total}</h2>
 
         </div>
@@ -264,7 +279,7 @@ if page == "📊 Dashboard":
 
         <div class="metric-card">
 
-        <h3>📈 Profit</h3>
+        <h3>📈 Today Profit</h3>
         <h2>₹ {today_profit}</h2>
 
         </div>
@@ -286,14 +301,14 @@ if page == "📊 Dashboard":
 
 elif page == "🛒 Purchase":
 
-    st.title("🛒 PURCHASE")
+    st.title("🛒 PURCHASE ENTRY")
 
     c1,c2 = st.columns(2)
 
     with c1:
 
         bill = st.text_input(
-            "Purchase Bill",
+            "Purchase Bill No",
             value=str(
                 st.session_state.purchase_no
             )
@@ -354,7 +369,7 @@ elif page == "🛒 Purchase":
         balance = total - paid
 
         st.info(
-            f"Total ₹ {total}"
+            f"Total Amount ₹ {total}"
         )
 
         st.warning(
@@ -382,8 +397,6 @@ elif page == "🛒 Purchase":
             data
         )
 
-        # STOCK UPDATE
-
         found = False
 
         for item in st.session_state.stock_data:
@@ -391,6 +404,7 @@ elif page == "🛒 Purchase":
             if item["Product"] == product:
 
                 item["Qty"] += qty
+
                 found = True
 
         if not found:
@@ -406,20 +420,27 @@ elif page == "🛒 Purchase":
 
         st.session_state.purchase_no += 1
 
-        st.success("Purchase Saved")
+        st.success(
+            "Purchase Saved"
+        )
 
     st.divider()
 
-    if len(st.session_state.purchase_data)>0:
+    if len(
+        st.session_state.purchase_data
+    ) > 0:
 
         st.dataframe(
+
             pd.DataFrame(
                 st.session_state.purchase_data
             ),
+
             use_container_width=True
+
         )
 
-        delete_index = st.selectbox(
+        delete_purchase = st.selectbox(
 
             "Delete Purchase Entry",
 
@@ -434,7 +455,7 @@ elif page == "🛒 Purchase":
         if st.button("DELETE PURCHASE"):
 
             st.session_state.purchase_data.pop(
-                delete_index
+                delete_purchase
             )
 
             st.success("Deleted")
@@ -445,7 +466,7 @@ elif page == "🛒 Purchase":
 
 elif page == "💰 Sales":
 
-    st.title("💰 SALES")
+    st.title("💰 SALES ENTRY")
 
     c1,c2 = st.columns(2)
 
@@ -453,7 +474,7 @@ elif page == "💰 Sales":
 
         bill = st.text_input(
 
-            "Sales Bill",
+            "Sales Bill No",
 
             value=str(
                 st.session_state.sales_no
@@ -483,7 +504,7 @@ elif page == "💰 Sales":
         )
 
         qty = st.number_input(
-            "Sales Qty",
+            "Sales Quantity",
             min_value=0.0
         )
 
@@ -498,7 +519,7 @@ elif page == "💰 Sales":
 
         payment = st.selectbox(
 
-            "Payment",
+            "Payment Type",
 
             [
                 "Cash",
@@ -527,7 +548,7 @@ elif page == "💰 Sales":
         balance = total - paid
 
         st.info(
-            f"Total ₹ {total}"
+            f"Total Amount ₹ {total}"
         )
 
         st.warning(
@@ -547,6 +568,10 @@ elif page == "💰 Sales":
     points = int(total / 100) * 50
 
     discount = points * 2
+
+    st.success(
+        f"Reward Points: {points}"
+    )
 
     if st.button("SAVE SALES"):
 
@@ -577,12 +602,14 @@ elif page == "💰 Sales":
         st.session_state.sales_no += 1
 
         st.success(
-            f"Sales Saved | {points} Points Added"
+            "Sales Saved"
         )
 
     st.divider()
 
-    if len(st.session_state.sales_data)>0:
+    if len(
+        st.session_state.sales_data
+    ) > 0:
 
         st.dataframe(
 
@@ -594,7 +621,7 @@ elif page == "💰 Sales":
 
         )
 
-        delete_sale = st.selectbox(
+        delete_sales = st.selectbox(
 
             "Delete Sales Entry",
 
@@ -609,7 +636,7 @@ elif page == "💰 Sales":
         if st.button("DELETE SALES"):
 
             st.session_state.sales_data.pop(
-                delete_sale
+                delete_sales
             )
 
             st.success("Deleted")
@@ -626,7 +653,9 @@ elif page == "📦 Stock":
         st.session_state.stock_data
     ) == 0:
 
-        st.warning("No Stock")
+        st.warning(
+            "No Stock Available"
+        )
 
     else:
 
@@ -649,7 +678,9 @@ elif page == "📒 Customer Ledger":
         st.session_state.sales_data
     ) == 0:
 
-        st.warning("No Customer Data")
+        st.warning(
+            "No Customer Data"
+        )
 
     else:
 
@@ -665,7 +696,7 @@ elif page == "📒 Customer Ledger":
         st.divider()
 
         st.subheader(
-            "💵 Receive Payment"
+            "💵 Receive Customer Payment"
         )
 
         selected = st.selectbox(
@@ -735,7 +766,9 @@ elif page == "📒 Customer Ledger":
                 "Online Amount"
             ] += receive_online
 
-            st.success("Payment Received")
+            st.success(
+                "Payment Received"
+            )
 
             st.rerun()
 
@@ -749,7 +782,9 @@ elif page == "🚚 Supplier Ledger":
         st.session_state.purchase_data
     ) == 0:
 
-        st.warning("No Supplier Data")
+        st.warning(
+            "No Supplier Data"
+        )
 
     else:
 
@@ -766,7 +801,7 @@ elif page == "🚚 Supplier Ledger":
 
 elif page == "💸 Expense":
 
-    st.title("💸 EXPENSE")
+    st.title("💸 EXPENSE ENTRY")
 
     name = st.text_input(
         "Expense Name"
@@ -779,7 +814,7 @@ elif page == "💸 Expense":
 
     payment = st.selectbox(
 
-        "Expense Payment",
+        "Payment Mode",
 
         [
             "Cash",
@@ -798,7 +833,9 @@ elif page == "💸 Expense":
 
         })
 
-        st.success("Expense Saved")
+        st.success(
+            "Expense Saved"
+        )
 
     if len(
         st.session_state.expense_data
@@ -856,7 +893,9 @@ elif page == "🐶 Pet Register":
 
         })
 
-        st.success("Pet Saved")
+        st.success(
+            "Pet Saved"
+        )
 
     if len(
         st.session_state.pet_data
@@ -876,7 +915,7 @@ elif page == "🐶 Pet Register":
 
 st.sidebar.divider()
 
-if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("🚪 LOGOUT"):
 
     st.session_state.login = False
 
