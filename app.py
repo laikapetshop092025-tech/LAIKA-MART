@@ -1,208 +1,87 @@
+# Replace Entire `app.py` With This Final Fixed Code
+
+```python
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import calendar
 
-# ====================================
-# PAGE CONFIG
-# ====================================
+st.set_page_config(page_title="LAIKA ERP", layout="wide")
 
-st.set_page_config(
-    page_title="LAIKA ERP",
-    layout="wide"
-)
+# =========================
+# DEFAULT DATA
+# =========================
 
-# ====================================
+if "sales" not in st.session_state:
+    st.session_state.sales = []
+
+if "purchase" not in st.session_state:
+    st.session_state.purchase = []
+
+if "expense" not in st.session_state:
+    st.session_state.expense = []
+
+if "customers" not in st.session_state:
+    st.session_state.customers = []
+
+if "suppliers" not in st.session_state:
+    st.session_state.suppliers = []
+
+if "stock" not in st.session_state:
+    st.session_state.stock = {}
+
+if "sales_no" not in st.session_state:
+    st.session_state.sales_no = 1
+
+if "purchase_no" not in st.session_state:
+    st.session_state.purchase_no = 1
+
+# =========================
 # CSS
-# ====================================
+# =========================
 
 st.markdown("""
-
 <style>
-
-.main{
-    background:#f5f3ff;
+.main {
+    background: #f8f5ff;
 }
 
-/* SIDEBAR */
-
-[data-testid="stSidebar"]{
-    background:linear-gradient(180deg,#7c3aed,#a855f7);
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg,#8b5cf6,#ec4899);
 }
 
-[data-testid="stSidebar"] *{
-    color:white;
+[data-testid="stSidebar"] * {
+    color: white;
 }
 
-/* BUTTON */
-
-.stButton>button{
-    background:linear-gradient(90deg,#7c3aed,#ec4899);
-    color:white;
-    border:none;
-    border-radius:12px;
-    padding:10px 18px;
-    font-weight:bold;
+.stButton>button {
+    width: 100%;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg,#8b5cf6,#ec4899);
+    color: white;
+    font-weight: bold;
+    height: 45px;
 }
 
-.stButton>button:hover{
-    background:linear-gradient(90deg,#6d28d9,#db2777);
-    transform:scale(1.02);
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 10px;
 }
-
-/* DASHBOARD CARD */
-
-.card{
-    padding:18px;
-    border-radius:18px;
-    color:white;
-    text-align:center;
-    margin-bottom:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.12);
-}
-
-.purple{
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed);
-}
-
-.pink{
-    background:linear-gradient(135deg,#ec4899,#db2777);
-}
-
-.blue{
-    background:linear-gradient(135deg,#3b82f6,#2563eb);
-}
-
-.green{
-    background:linear-gradient(135deg,#10b981,#059669);
-}
-
-.orange{
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-}
-
-.red{
-    background:linear-gradient(135deg,#ef4444,#dc2626);
-}
-
 </style>
-
 """, unsafe_allow_html=True)
 
-# ====================================
-# LOGIN
-# ====================================
-
-if "login" not in st.session_state:
-    st.session_state.login = False
-
-if not st.session_state.login:
-
-    st.title("🐶 LAIKA ERP LOGIN")
-
-    user = st.text_input("User ID")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-
-        if user == "admin" and password == "admin123":
-
-            st.session_state.login = True
-            st.rerun()
-
-        else:
-
-            st.error("Wrong ID or Password")
-
-    st.info("Demo Login → admin / admin123")
-
-    st.stop()
-
-# ====================================
-# STORAGE
-# ====================================
-
-if "purchase_data" not in st.session_state:
-    st.session_state.purchase_data = []
-
-if "sales_data" not in st.session_state:
-    st.session_state.sales_data = []
-
-if "expense_data" not in st.session_state:
-    st.session_state.expense_data = []
-
-if "customer_data" not in st.session_state:
-    st.session_state.customer_data = []
-
-if "supplier_data" not in st.session_state:
-    st.session_state.supplier_data = []
-
-if "pet_data" not in st.session_state:
-    st.session_state.pet_data = []
-
-# ====================================
-# AUTO BILL
-# ====================================
-
-purchase_bill = len(st.session_state.purchase_data) + 1
-sales_bill = len(st.session_state.sales_data) + 1
-
-# ====================================
-# DATE
-# ====================================
-
-today = datetime.now()
-
-today_date = today.strftime("%d-%m-%Y")
-
-today_day = calendar.day_name[today.weekday()]
-
-# ====================================
-# CALCULATIONS
-# ====================================
-
-today_sales = sum(
-    x["Total"]
-    for x in st.session_state.sales_data
-)
-
-today_purchase = sum(
-    x["Total"]
-    for x in st.session_state.purchase_data
-)
-
-cash_total = 0
-online_total = 0
-
-for x in st.session_state.sales_data:
-
-    if x["Payment"] == "Cash":
-
-        cash_total += x["Paid"]
-
-    elif x["Payment"] == "Online":
-
-        online_total += x["Paid"]
-
-    elif x["Payment"] == "Both":
-
-        cash_total += x["Cash"]
-        online_total += x["Online"]
-
-total_received = cash_total + online_total
-
-profit = today_sales - today_purchase
-
-# ====================================
+# =========================
 # SIDEBAR
-# ====================================
+# =========================
 
 st.sidebar.title("🐶 LAIKA ERP")
 
 page = st.sidebar.radio(
-
     "MENU",
-
     [
         "Dashboard",
         "Purchase",
@@ -210,101 +89,97 @@ page = st.sidebar.radio(
         "Expense",
         "Stock",
         "Customer Ledger",
-        "Supplier Ledger",
-        "Pet Register"
+        "Supplier Ledger"
     ]
 )
 
-if st.sidebar.button("Logout"):
+# =========================
+# DASHBOARD CALCULATION
+# =========================
 
-    st.session_state.login = False
-    st.rerun()
+sales_total = sum(x.get("Total",0) for x in st.session_state.sales)
+purchase_total = sum(x.get("Total",0) for x in st.session_state.purchase)
+expense_total = sum(x.get("Amount",0) for x in st.session_state.expense)
 
-# ====================================
+cash_total = 0
+online_total = 0
+
+for x in st.session_state.sales:
+    payment = x.get("Payment","")
+
+    if payment == "Cash":
+        cash_total += x.get("Paid",0)
+
+    elif payment == "Online":
+        online_total += x.get("Paid",0)
+
+profit_total = sales_total - purchase_total - expense_total
+
+# =========================
 # DASHBOARD
-# ====================================
+# =========================
 
 if page == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    st.subheader(
-        f"📅 {today_date} | {today_day}"
-    )
+    col1,col2,col3,col4 = st.columns(4)
 
-    c1,c2,c3 = st.columns(3)
-
-    with c1:
-
+    with col1:
         st.markdown(f"""
-
-        <div class="card purple">
-        <h3>Total Sales</h3>
-        <h1>₹ {today_sales}</h1>
+        <div class='card'>
+        <h3>Today's Sales</h3>
+        <h2>₹ {sales_total}</h2>
         </div>
-
         """, unsafe_allow_html=True)
 
-    with c2:
-
+    with col2:
         st.markdown(f"""
-
-        <div class="card pink">
-        <h3>Total Purchase</h3>
-        <h1>₹ {today_purchase}</h1>
+        <div class='card'>
+        <h3>Today's Purchase</h3>
+        <h2>₹ {purchase_total}</h2>
         </div>
-
         """, unsafe_allow_html=True)
 
-    with c3:
-
+    with col3:
         st.markdown(f"""
-
-        <div class="card blue">
-        <h3>Profit</h3>
-        <h1>₹ {profit}</h1>
+        <div class='card'>
+        <h3>Cash Receive</h3>
+        <h2>₹ {cash_total}</h2>
         </div>
-
         """, unsafe_allow_html=True)
 
-    c4,c5,c6 = st.columns(3)
-
-    with c4:
-
+    with col4:
         st.markdown(f"""
-
-        <div class="card green">
-        <h3>Cash</h3>
-        <h1>₹ {cash_total}</h1>
+        <div class='card'>
+        <h3>Online Receive</h3>
+        <h2>₹ {online_total}</h2>
         </div>
-
         """, unsafe_allow_html=True)
 
-    with c5:
+    st.divider()
 
+    col5,col6 = st.columns(2)
+
+    with col5:
         st.markdown(f"""
-
-        <div class="card orange">
-        <h3>Online</h3>
-        <h1>₹ {online_total}</h1>
-        </div>
-
-        """, unsafe_allow_html=True)
-
-    with c6:
-
-        st.markdown(f"""
-
-        <div class="card red">
+        <div class='card'>
         <h3>Total Receive</h3>
-        <h1>₹ {total_received}</h1>
+        <h2>₹ {cash_total + online_total}</h2>
         </div>
-
         """, unsafe_allow_html=True)
 
-# ====================================
+    with col6:
+        st.markdown(f"""
+        <div class='card'>
+        <h3>Total Profit</h3>
+        <h2>₹ {profit_total}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+# =========================
 # PURCHASE
-# ====================================
+# =========================
 
 elif page == "Purchase":
 
@@ -314,59 +189,45 @@ elif page == "Purchase":
 
     with col1:
 
-        bill = st.text_input(
-            "Bill No",
-            value=str(purchase_bill)
+        bill_no = st.text_input(
+            "Purchase Bill No",
+            value=str(st.session_state.purchase_no)
         )
 
-        supplier = st.text_input(
-            "Supplier Name"
-        )
+        supplier = st.text_input("Supplier Name")
 
-        product = st.text_input(
-            "Product Name"
-        )
+        product = st.text_input("Product Name")
 
         unit = st.selectbox(
             "Unit",
             ["KG","PCS","DOZEN","BAG"]
         )
 
-        qty = st.number_input(
-            "Quantity",
-            min_value=0.0
-        )
+        qty = st.number_input("Quantity", min_value=0.0)
 
     with col2:
 
-        rate = st.number_input(
-            "Rate",
-            min_value=0.0
-        )
+        rate = st.number_input("Rate", min_value=0.0)
 
         total = qty * rate
 
-        st.info(f"Total ₹ {total}")
+        st.info(f"Total = ₹ {total}")
 
         payment = st.selectbox(
             "Payment",
             ["Cash","Online","Udhari"]
         )
 
-        paid = st.number_input(
-            "Paid Amount",
-            min_value=0.0
-        )
+        paid = st.number_input("Paid Amount", min_value=0.0)
 
         balance = total - paid
 
-        st.warning(f"Balance ₹ {balance}")
+        st.warning(f"Balance = ₹ {balance}")
 
     if st.button("Save Purchase"):
 
-        st.session_state.purchase_data.append({
-
-            "Bill": bill,
+        data = {
+            "Bill": bill_no,
             "Supplier": supplier,
             "Product": product,
             "Unit": unit,
@@ -376,46 +237,55 @@ elif page == "Purchase":
             "Payment": payment,
             "Paid": paid,
             "Balance": balance
+        }
 
-        })
+        st.session_state.purchase.append(data)
+
+        # STOCK ADD
+        current_stock = st.session_state.stock.get(product,0)
+        st.session_state.stock[product] = current_stock + qty
+
+        # SUPPLIER
+        found = False
+
+        for s in st.session_state.suppliers:
+            if s["Name"] == supplier:
+                s["Pending"] += balance
+                found = True
+
+        if not found:
+            st.session_state.suppliers.append({
+                "Name": supplier,
+                "Pending": balance
+            })
+
+        st.session_state.purchase_no += 1
 
         st.success("Purchase Saved")
 
-    if st.session_state.purchase_data:
+    st.divider()
 
-        st.subheader("Purchase History")
+    st.subheader("Delete Purchase Entry")
 
-        for i,data in enumerate(
-            st.session_state.purchase_data
-        ):
+    if len(st.session_state.purchase) > 0:
 
-            col1,col2,col3 = st.columns([4,4,1])
+        df = pd.DataFrame(st.session_state.purchase)
+        st.dataframe(df, use_container_width=True)
 
-            with col1:
+        delete_index = st.number_input(
+            "Enter Row Number To Delete",
+            min_value=0,
+            max_value=len(st.session_state.purchase)-1,
+            step=1
+        )
 
-                st.write(
-                    f"{data['Product']} | Qty {data['Qty']} {data['Unit']}"
-                )
+        if st.button("Delete Purchase"):
+            st.session_state.purchase.pop(delete_index)
+            st.success("Deleted Successfully")
 
-            with col2:
-
-                st.write(
-                    f"₹ {data['Total']}"
-                )
-
-            with col3:
-
-                if st.button(
-                    "❌",
-                    key=f"purchase{i}"
-                ):
-
-                    st.session_state.purchase_data.pop(i)
-                    st.rerun()
-
-# ====================================
+# =========================
 # SALES
-# ====================================
+# =========================
 
 elif page == "Sales":
 
@@ -425,18 +295,14 @@ elif page == "Sales":
 
     with col1:
 
-        bill = st.text_input(
+        bill_no = st.text_input(
             "Sales Bill No",
-            value=str(sales_bill)
+            value=str(st.session_state.sales_no)
         )
 
-        customer = st.text_input(
-            "Customer Name"
-        )
+        customer = st.text_input("Customer Name")
 
-        product = st.text_input(
-            "Product Name"
-        )
+        product = st.text_input("Product Name")
 
         unit = st.selectbox(
             "Sales Unit",
@@ -457,407 +323,234 @@ elif page == "Sales":
 
         total = qty * rate
 
-        st.info(f"Sales ₹ {total}")
+        reward_points = int(total / 100) * 50
+
+        st.info(f"Total = ₹ {total}")
+
+        st.success(f"Reward Points = {reward_points}")
 
         payment = st.selectbox(
-            "Payment Type",
-            ["Cash","Online","Both","Udhari"]
+            "Sales Payment",
+            ["Cash","Online","Udhari"]
         )
 
-        cash_amt = 0
-        online_amt = 0
-        paid = 0
-
-        if payment == "Cash":
-
-            paid = st.number_input(
-                "Cash Paid",
-                min_value=0.0
-            )
-
-        elif payment == "Online":
-
-            paid = st.number_input(
-                "Online Paid",
-                min_value=0.0
-            )
-
-        elif payment == "Both":
-
-            cash_amt = st.number_input(
-                "Cash",
-                min_value=0.0
-            )
-
-            online_amt = st.number_input(
-                "Online",
-                min_value=0.0
-            )
-
-            paid = cash_amt + online_amt
-
-        elif payment == "Udhari":
-
-            paid = st.number_input(
-                "Received",
-                min_value=0.0
-            )
+        paid = st.number_input(
+            "Paid Amount",
+            min_value=0.0
+        )
 
         balance = total - paid
 
-        st.warning(f"Balance ₹ {balance}")
+        st.warning(f"Balance = ₹ {balance}")
 
-    reward_points = int(total / 2)
+    if st.button("Save Sales"):
 
-    st.success(
-        f"Reward Points → {reward_points}"
-    )
+        current_stock = st.session_state.stock.get(product,0)
 
-    if st.button("Save Sale"):
+        if qty > current_stock:
+            st.error("Not Enough Stock")
 
-        found = False
+        else:
 
-        for c in st.session_state.customer_data:
+            st.session_state.stock[product] = current_stock - qty
 
-            if c["Customer"] == customer:
-
-                c["Pending"] += balance
-                c["Points"] += reward_points
-
-                found = True
-
-        if not found:
-
-            st.session_state.customer_data.append({
-
+            data = {
+                "Bill": bill_no,
                 "Customer": customer,
-                "Pending": balance,
+                "Product": product,
+                "Unit": unit,
+                "Qty": qty,
+                "Rate": rate,
+                "Total": total,
+                "Payment": payment,
+                "Paid": paid,
+                "Balance": balance,
                 "Points": reward_points
+            }
 
-            })
+            st.session_state.sales.append(data)
 
-        st.session_state.sales_data.append({
+            found = False
 
-            "Bill": bill,
-            "Customer": customer,
-            "Product": product,
-            "Unit": unit,
-            "Qty": qty,
-            "Rate": rate,
-            "Total": total,
-            "Payment": payment,
-            "Paid": paid,
-            "Cash": cash_amt,
-            "Online": online_amt,
-            "Balance": balance,
-            "Points": reward_points
+            for c in st.session_state.customers:
 
-        })
+                if c["Name"] == customer:
+                    c["Pending"] += balance
+                    c["Points"] += reward_points
+                    found = True
 
-        st.success("Sales Saved")
+            if not found:
+                st.session_state.customers.append({
+                    "Name": customer,
+                    "Pending": balance,
+                    "Points": reward_points
+                })
 
-    if st.session_state.sales_data:
+            st.session_state.sales_no += 1
 
-        st.subheader("Sales History")
+            st.success("Sales Saved")
 
-        for i,data in enumerate(
-            st.session_state.sales_data
-        ):
+    st.divider()
 
-            col1,col2,col3 = st.columns([4,4,1])
+    st.subheader("Delete Sales Entry")
 
-            with col1:
+    if len(st.session_state.sales) > 0:
 
-                st.write(
-                    f"{data['Product']} | Qty {data['Qty']} {data['Unit']}"
-                )
+        df = pd.DataFrame(st.session_state.sales)
+        st.dataframe(df, use_container_width=True)
 
-            with col2:
+        delete_index = st.number_input(
+            "Delete Sales Row",
+            min_value=0,
+            max_value=len(st.session_state.sales)-1,
+            step=1
+        )
 
-                st.write(
-                    f"₹ {data['Total']}"
-                )
+        if st.button("Delete Sales"):
+            st.session_state.sales.pop(delete_index)
+            st.success("Sales Deleted")
 
-            with col3:
-
-                if st.button(
-                    "❌",
-                    key=f"sales{i}"
-                ):
-
-                    st.session_state.sales_data.pop(i)
-                    st.rerun()
-
-# ====================================
+# =========================
 # EXPENSE
-# ====================================
+# =========================
 
 elif page == "Expense":
 
-    st.title("💸 Expense")
+    st.title("💸 Expense Entry")
 
-    name = st.text_input(
-        "Expense Name"
-    )
+    expense_name = st.text_input("Expense Name")
 
-    amount = st.number_input(
-        "Amount",
-        min_value=0.0
-    )
+    amount = st.number_input("Amount", min_value=0.0)
 
-    mode = st.selectbox(
-        "Mode",
+    payment = st.selectbox(
+        "Payment Mode",
         ["Cash","Online"]
     )
 
     if st.button("Save Expense"):
 
-        st.session_state.expense_data.append({
-
-            "Name": name,
+        st.session_state.expense.append({
+            "Expense": expense_name,
             "Amount": amount,
-            "Mode": mode
-
+            "Payment": payment
         })
 
         st.success("Expense Saved")
 
-    if st.session_state.expense_data:
+    if len(st.session_state.expense) > 0:
+        st.dataframe(pd.DataFrame(st.session_state.expense))
 
-        for i,data in enumerate(
-            st.session_state.expense_data
-        ):
-
-            col1,col2,col3 = st.columns([4,4,1])
-
-            with col1:
-
-                st.write(data["Name"])
-
-            with col2:
-
-                st.write(f"₹ {data['Amount']}")
-
-            with col3:
-
-                if st.button(
-                    "❌",
-                    key=f"expense{i}"
-                ):
-
-                    st.session_state.expense_data.pop(i)
-                    st.rerun()
-
-# ====================================
+# =========================
 # STOCK
-# ====================================
+# =========================
 
 elif page == "Stock":
 
     st.title("📦 Stock")
 
-    stock = {}
+    stock_data = []
 
-    for p in st.session_state.purchase_data:
+    for product,qty in st.session_state.stock.items():
+        stock_data.append({
+            "Product": product,
+            "Stock": qty
+        })
 
-        product = p["Product"]
+    if len(stock_data) > 0:
 
-        stock[product] = stock.get(
-            product,
-            0
-        ) + p["Qty"]
+        stock_df = pd.DataFrame(stock_data)
 
-    for s in st.session_state.sales_data:
+        st.dataframe(stock_df, use_container_width=True)
 
-        product = s["Product"]
-
-        stock[product] = stock.get(
-            product,
-            0
-        ) - s["Qty"]
-
-    stock_df = pd.DataFrame(
-
-        list(stock.items()),
-
-        columns=[
-            "Product",
-            "Current Stock"
-        ]
-    )
-
-    st.dataframe(
-        stock_df,
-        use_container_width=True
-    )
-
-# ====================================
+# =========================
 # CUSTOMER LEDGER
-# ====================================
+# =========================
 
 elif page == "Customer Ledger":
 
     st.title("👤 Customer Ledger")
 
-    if st.session_state.customer_data:
+    if len(st.session_state.customers) > 0:
 
-        for i,c in enumerate(
-            st.session_state.customer_data
-        ):
+        customer_df = pd.DataFrame(st.session_state.customers)
 
-            st.markdown("---")
+        st.dataframe(customer_df, use_container_width=True)
 
-            st.subheader(c["Customer"])
+        customer_name = st.selectbox(
+            "Select Customer",
+            customer_df["Name"]
+        )
 
-            st.write(
-                f"Pending ₹ {c['Pending']}"
-            )
+        receive_cash = st.number_input(
+            "Cash Receive",
+            min_value=0.0
+        )
 
-            st.write(
-                f"Reward Points → {c['Points']}"
-            )
+        receive_online = st.number_input(
+            "Online Receive",
+            min_value=0.0
+        )
 
-            col1,col2 = st.columns(2)
+        total_receive = receive_cash + receive_online
 
-            with col1:
+        if st.button("Receive Payment"):
 
-                cash = st.number_input(
-                    f"Cash {i}",
-                    min_value=0.0,
-                    key=f"cash{i}"
-                )
+            for c in st.session_state.customers:
 
-            with col2:
+                if c["Name"] == customer_name:
+                    c["Pending"] -= total_receive
 
-                online = st.number_input(
-                    f"Online {i}",
-                    min_value=0.0,
-                    key=f"online{i}"
-                )
+            st.success("Payment Updated")
 
-            if st.button(
-                f"Receive Payment {i}"
-            ):
-
-                total = cash + online
-
-                c["Pending"] -= total
-
-                st.success(
-                    "Payment Updated"
-                )
-
-# ====================================
+# =========================
 # SUPPLIER LEDGER
-# ====================================
+# =========================
 
 elif page == "Supplier Ledger":
 
     st.title("🏪 Supplier Ledger")
 
-    supplier_summary = {}
+    if len(st.session_state.suppliers) > 0:
 
-    for p in st.session_state.purchase_data:
+        supplier_df = pd.DataFrame(st.session_state.suppliers)
 
-        name = p["Supplier"]
+        st.dataframe(supplier_df, use_container_width=True)
 
-        supplier_summary[name] = supplier_summary.get(
-            name,
-            0
-        ) + p["Balance"]
-
-    for i,(name,balance) in enumerate(
-        supplier_summary.items()
-    ):
-
-        st.markdown("---")
-
-        st.subheader(name)
-
-        st.write(
-            f"Pending ₹ {balance}"
+        supplier_name = st.selectbox(
+            "Select Supplier",
+            supplier_df["Name"]
         )
 
-        col1,col2 = st.columns(2)
-
-        with col1:
-
-            cash = st.number_input(
-                f"Supplier Cash {i}",
-                min_value=0.0,
-                key=f"sc{i}"
-            )
-
-        with col2:
-
-            online = st.number_input(
-                f"Supplier Online {i}",
-                min_value=0.0,
-                key=f"so{i}"
-            )
-
-        if st.button(
-            f"Pay Supplier {i}"
-        ):
-
-            total = cash + online
-
-            supplier_summary[name] -= total
-
-            st.success(
-                "Payment Updated"
-            )
-
-# ====================================
-# PET REGISTER
-# ====================================
-
-elif page == "Pet Register":
-
-    st.title("🐶 Pet Register")
-
-    owner = st.text_input(
-        "Owner Name"
-    )
-
-    pet = st.text_input(
-        "Pet Name"
-    )
-
-    pet_type = st.selectbox(
-        "Pet Type",
-        ["Dog","Cat","Bird","Fish"]
-    )
-
-    breed = st.text_input(
-        "Breed"
-    )
-
-    mobile = st.text_input(
-        "Mobile"
-    )
-
-    if st.button("Save Pet"):
-
-        st.session_state.pet_data.append({
-
-            "Owner": owner,
-            "Pet": pet,
-            "Type": pet_type,
-            "Breed": breed,
-            "Mobile": mobile
-
-        })
-
-        st.success("Pet Saved")
-
-    if st.session_state.pet_data:
-
-        df = pd.DataFrame(
-            st.session_state.pet_data
+        pay_cash = st.number_input(
+            "Cash Payment",
+            min_value=0.0
         )
 
-        st.dataframe(
-            df,
-            use_container_width=True
+        pay_online = st.number_input(
+            "Online Payment",
+            min_value=0.0
         )
+
+        total_pay = pay_cash + pay_online
+
+        if st.button("Pay Supplier"):
+
+            for s in st.session_state.suppliers:
+
+                if s["Name"] == supplier_name:
+                    s["Pending"] -= total_pay
+
+            st.success("Supplier Payment Updated")
+
+```
+
+## Final Steps
+
+1. Open your GitHub repository.
+2. Open `app.py`
+3. Delete old code.
+4. Paste this full code.
+5. Click `Commit Changes`
+6. Open Streamlit.
+7. Click `Reboot App`
+8. Done ✅
