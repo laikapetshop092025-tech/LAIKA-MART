@@ -1,233 +1,503 @@
 import streamlit as st
+import pandas as pd
 import requests
 from datetime import datetime
 
+# =========================================
+# GOOGLE SHEET API
+# =========================================
+
 API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
-st.set_page_config(page_title="Laika ERP", layout="wide")
+# =========================================
+# PAGE CONFIG
+# =========================================
 
-# ======================
-# SESSION INIT
-# ======================
+st.set_page_config(
+    page_title="LAIKA ERP",
+    layout="wide"
+)
+
+# =========================================
+# CSS
+# =========================================
+
+st.markdown("""
+
+<style>
+
+.main{
+    background:#f8f5ff;
+}
+
+[data-testid="stSidebar"]{
+    background:linear-gradient(180deg,#7c3aed,#ec4899);
+}
+
+[data-testid="stSidebar"] *{
+    color:white;
+}
+
+.stButton>button{
+    width:100%;
+    height:45px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(90deg,#8b5cf6,#ec4899);
+    color:white;
+    font-weight:bold;
+}
+
+.card{
+    background:linear-gradient(135deg,#8b5cf6,#ec4899);
+    border-radius:18px;
+    padding:20px;
+    color:white;
+    text-align:center;
+    height:150px;
+}
+
+</style>
+
+""", unsafe_allow_html=True)
+
+# =========================================
+# FUNCTIONS
+# =========================================
+
+def get_data(sheet):
+
+    try:
+
+        response = requests.get(
+            f"{API_URL}?sheet={sheet}"
+        )
+
+        data = response.json()
+
+        return pd.DataFrame(data)
+
+    except:
+
+        return pd.DataFrame()
+
+def save_data(sheet, data):
+
+    payload = {
+        "action":"save",
+        "sheet":sheet,
+        "data":data
+    }
+
+    requests.post(API_URL, json=payload)
+
+# =========================================
+# LOGIN
+# =========================================
 
 if "login" not in st.session_state:
     st.session_state.login = False
 
-if "stock" not in st.session_state:
-    st.session_state.stock = {}
+if st.session_state.login == False:
 
-if "purchase" not in st.session_state:
-    st.session_state.purchase = []
+    st.title("🐶 LAIKA ERP LOGIN")
 
-if "sales" not in st.session_state:
-    st.session_state.sales = []
+    username = st.text_input("Username")
 
-if "customer" not in st.session_state:
-    st.session_state.customer = {}
-
-# ======================
-# LOGIN
-# ======================
-
-if not st.session_state.login:
-
-    st.title("🔐 LAIKA ERP LOGIN")
-
-    u = st.text_input("User")
-    p = st.text_input("Password", type="password")
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
 
     if st.button("Login"):
-        if u == "admin" and p == "admin":
+
+        if username == "admin" and password == "admin123":
+
             st.session_state.login = True
             st.rerun()
+
         else:
-            st.error("Wrong login")
+
+            st.error("Wrong Username or Password")
+
+    st.info("Username = admin")
+    st.info("Password = admin123")
 
     st.stop()
 
-# ======================
-# SAFE GOOGLE SHEET PUSH
-# ======================
-
-def send(sheet, data):
-
-    try:
-        requests.post(API_URL, json={
-            "sheet": sheet,
-            "data": data
-        }, timeout=5)
-    except:
-        pass
-
-# ======================
+# =========================================
 # SIDEBAR
-# ======================
+# =========================================
 
-st.sidebar.title("LAIKA ERP")
+st.sidebar.title("🐶 LAIKA ERP")
 
-menu = st.sidebar.radio(
-    "Menu",
-    ["Dashboard", "Purchase", "Sales", "Stock", "Customer"]
+page = st.sidebar.radio(
+    "MENU",
+    [
+        "Dashboard",
+        "Purchase",
+        "Sales",
+        "Expense",
+        "Stock",
+        "Customer Ledger",
+        "Supplier Ledger",
+        "Settings"
+    ]
 )
 
-# ======================
-# STOCK ALERT STYLE
-# ======================
+if st.sidebar.button("Logout"):
 
-def stock_color(qty):
-    if qty <= 2:
-        return "🔴 LOW"
-    return "🟢 OK"
+    st.session_state.login = False
+    st.rerun()
 
-# ======================
+# =========================================
+# LOAD DATA
+# =========================================
+
+sales_df = get_data("Sales")
+purchase_df = get_data("Purchase")
+expense_df = get_data("Expense")
+stock_df = get_data("Stock")
+customer_df = get_data("Customer")
+supplier_df = get_data("Supplier")
+
+# =========================================
+# TOTALS
+# =========================================
+
+sales_total = 0
+purchase_total = 0
+expense_total = 0
+cash_total = 0
+online_total = 0
+
+if not sales_df.empty:
+
+    if "Total" in sales_df.columns:
+
+        sales_total = pd.to_numeric(
+            sales_df["Total"],
+            errors="coerce"
+        ).sum()
+
+    if "Payment" in sales_df.columns:
+
+        for _,row in sales_df.iterrows():
+
+            payment = str(row.get("Payment",""))
+
+            paid = float(row.get("Paid",0))
+
+            if payment == "Cash":
+
+                cash_total += paid
+
+            elif payment == "Online":
+
+                online_total += paid
+
+if not purchase_df.empty:
+
+    if "Total" in purchase_df.columns:
+
+        purchase_total = pd.to_numeric(
+            purchase_df["Total"],
+            errors="coerce"
+        ).sum()
+
+if not expense_df.empty:
+
+    if "Amount" in expense_df.columns:
+
+        expense_total = pd.to_numeric(
+            expense_df["Amount"],
+            errors="coerce"
+        ).sum()
+
+profit_total = (
+    sales_total
+    - purchase_total
+    - expense_total
+)
+
+# =========================================
 # DASHBOARD
-# ======================
+# =========================================
 
-if menu == "Dashboard":
+if page == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    total_purchase = sum(x["total"] for x in st.session_state.purchase)
-    total_sales = sum(x["total"] for x in st.session_state.sales)
+    c1,c2,c3,c4 = st.columns(4)
 
-    cash = sum(x["paid"] for x in st.session_state.sales if x["payment"] == "Cash")
-    online = sum(x["paid"] for x in st.session_state.sales if x["payment"] == "Online")
+    with c1:
 
-    col1, col2, col3 = st.columns(3)
+        st.markdown(f"""
+        <div class="card">
+        <h3>Total Sales</h3>
+        <h1>₹ {sales_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
 
-    col1.metric("Purchase", total_purchase)
-    col2.metric("Sales", total_sales)
-    col3.metric("Profit", total_sales - total_purchase)
+    with c2:
 
-    st.write("Cash:", cash)
-    st.write("Online:", online)
+        st.markdown(f"""
+        <div class="card">
+        <h3>Total Purchase</h3>
+        <h1>₹ {purchase_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
 
-# ======================
+    with c3:
+
+        st.markdown(f"""
+        <div class="card">
+        <h3>Cash Receive</h3>
+        <h1>₹ {cash_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c4:
+
+        st.markdown(f"""
+        <div class="card">
+        <h3>Online Receive</h3>
+        <h1>₹ {online_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
+
+    c5,c6 = st.columns(2)
+
+    with c5:
+
+        st.markdown(f"""
+        <div class="card">
+        <h3>Total Receive</h3>
+        <h1>₹ {cash_total + online_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c6:
+
+        st.markdown(f"""
+        <div class="card">
+        <h3>Total Profit</h3>
+        <h1>₹ {profit_total}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+# =========================================
 # PURCHASE
-# ======================
+# =========================================
 
-elif menu == "Purchase":
+elif page == "Purchase":
 
     st.title("🛒 Purchase")
 
-    product = st.text_input("Product")
-    qty = st.number_input("Qty", min_value=0.0)
-    rate = st.number_input("Rate", min_value=0.0)
+    product = st.text_input("Product Name")
+
+    unit = st.selectbox(
+        "Unit",
+        ["KG","PCS","DOZEN","BAG"]
+    )
+
+    qty = st.number_input(
+        "Quantity",
+        min_value=0.0
+    )
+
+    rate = st.number_input(
+        "Rate",
+        min_value=0.0
+    )
 
     total = qty * rate
 
-    payment = st.selectbox("Payment", ["Cash", "Online"])
-    paid = st.number_input("Paid", min_value=0.0)
+    st.info(f"Total = ₹ {total}")
+
+    payment = st.selectbox(
+        "Payment",
+        ["Cash","Online","Udhari"]
+    )
+
+    paid = st.number_input(
+        "Paid Amount",
+        min_value=0.0
+    )
+
+    balance = total - paid
+
+    st.warning(f"Balance = ₹ {balance}")
 
     if st.button("Save Purchase"):
 
         data = {
-            "time": str(datetime.now()),
-            "product": product,
-            "qty": qty,
-            "rate": rate,
-            "total": total,
-            "payment": payment,
-            "paid": paid
+
+            "Date":str(datetime.now()),
+            "Product":product,
+            "Unit":unit,
+            "Qty":qty,
+            "Rate":rate,
+            "Total":total,
+            "Payment":payment,
+            "Paid":paid,
+            "Balance":balance
+
         }
 
-        st.session_state.purchase.append(data)
+        save_data("Purchase", data)
 
-        # STOCK + ADD
-        st.session_state.stock[product] = st.session_state.stock.get(product, 0) + qty
+        st.success("Purchase Saved")
 
-        send("Purchase", data)
-
-        st.success("Saved")
-
-# ======================
+# =========================================
 # SALES
-# ======================
+# =========================================
 
-elif menu == "Sales":
+elif page == "Sales":
 
     st.title("💰 Sales")
 
-    customer = st.text_input("Customer")
-    product = st.text_input("Product")
-    qty = st.number_input("Qty", min_value=0.0)
-    rate = st.number_input("Rate", min_value=0.0)
+    customer = st.text_input("Customer Name")
+
+    product = st.text_input("Product Name")
+
+    unit = st.selectbox(
+        "Sales Unit",
+        ["KG","PCS","DOZEN","BAG"]
+    )
+
+    qty = st.number_input(
+        "Sales Qty",
+        min_value=0.0
+    )
+
+    rate = st.number_input(
+        "Sales Rate",
+        min_value=0.0
+    )
 
     total = qty * rate
 
-    payment = st.selectbox("Payment", ["Cash", "Online"])
-    paid = st.number_input("Paid", min_value=0.0)
+    reward_points = int(total / 100) * 50
 
-    if st.button("Save Sale"):
+    st.success(
+        f"Reward Points = {reward_points}"
+    )
 
-        if product not in st.session_state.stock:
-            st.error("No stock")
-            st.stop()
+    payment = st.selectbox(
+        "Sales Payment",
+        ["Cash","Online","Udhari"]
+    )
 
-        if st.session_state.stock[product] < qty:
-            st.error("Low stock")
-            st.stop()
+    paid = st.number_input(
+        "Sales Paid Amount",
+        min_value=0.0
+    )
 
-        # STOCK MINUS
-        st.session_state.stock[product] -= qty
+    balance = total - paid
 
-        # CUSTOMER LEDGER
-        st.session_state.customer.setdefault(customer, 0)
-        st.session_state.customer[customer] += (total - paid)
+    st.warning(f"Balance = ₹ {balance}")
+
+    if st.button("Save Sales"):
 
         data = {
-            "time": str(datetime.now()),
-            "customer": customer,
-            "product": product,
-            "qty": qty,
-            "rate": rate,
-            "total": total,
-            "payment": payment,
-            "paid": paid
+
+            "Date":str(datetime.now()),
+            "Customer":customer,
+            "Product":product,
+            "Unit":unit,
+            "Qty":qty,
+            "Rate":rate,
+            "Total":total,
+            "Payment":payment,
+            "Paid":paid,
+            "Balance":balance,
+            "Points":reward_points
+
         }
 
-        st.session_state.sales.append(data)
+        save_data("Sales", data)
 
-        send("Sales", data)
+        st.success("Sales Saved")
 
-        st.success("Saved")
+# =========================================
+# EXPENSE
+# =========================================
 
-# ======================
+elif page == "Expense":
+
+    st.title("💸 Expense")
+
+    expense = st.text_input(
+        "Expense Name"
+    )
+
+    amount = st.number_input(
+        "Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Expense"):
+
+        data = {
+
+            "Date":str(datetime.now()),
+            "Expense":expense,
+            "Amount":amount
+
+        }
+
+        save_data("Expense", data)
+
+        st.success("Expense Saved")
+
+# =========================================
 # STOCK
-# ======================
+# =========================================
 
-elif menu == "Stock":
+elif page == "Stock":
 
     st.title("📦 Stock")
 
-    for k, v in st.session_state.stock.items():
+    st.dataframe(
+        stock_df,
+        use_container_width=True
+    )
 
-        st.write(f"{k} → {v} {stock_color(v)}")
+# =========================================
+# CUSTOMER LEDGER
+# =========================================
 
-# ======================
-# CUSTOMER
-# ======================
-
-elif menu == "Customer":
+elif page == "Customer Ledger":
 
     st.title("👤 Customer Ledger")
 
-    for k, v in st.session_state.customer.items():
+    st.dataframe(
+        customer_df,
+        use_container_width=True
+    )
 
-        st.write(f"{k} → Pending ₹{v}")
+# =========================================
+# SUPPLIER LEDGER
+# =========================================
 
-        pay = st.number_input(f"Receive from {k}", min_value=0.0, key=k)
+elif page == "Supplier Ledger":
 
-        mode = st.selectbox(f"Mode {k}", ["Cash", "Online"], key=k+"m")
+    st.title("🏪 Supplier Ledger")
 
-        if st.button(f"Add Payment {k}"):
+    st.dataframe(
+        supplier_df,
+        use_container_width=True
+    )
 
-            st.session_state.customer[k] -= pay
+# =========================================
+# SETTINGS
+# =========================================
 
-            send("Customer", {
-                "name": k,
-                "amount": pay,
-                "mode": mode
-            })
+elif page == "Settings":
 
-            st.success("Updated")
+    st.title("⚙️ Settings")
+
+    st.success("ERP Running Successfully")
