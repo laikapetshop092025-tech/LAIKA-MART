@@ -7,7 +7,7 @@ from datetime import datetime
 # GOOGLE SHEET API
 # =========================================
 
-API_URL = "PASTE_YOUR_GOOGLE_SCRIPT_WEBAPP_URL_HERE"
+API_URL = "https://script.google.com/macros/s/AKfycbyYnn80eP0QrXZctqTH1H3U42s4QhJZuGelZWW79VW5wAYcha60djsi8T7zMsbCsrqR/exec"
 
 # =========================================
 # PAGE CONFIG
@@ -27,7 +27,7 @@ st.markdown("""
 <style>
 
 .main{
-    background:#f7f3ff;
+    background:#f8f5ff;
 }
 
 [data-testid="stSidebar"]{
@@ -46,26 +46,15 @@ st.markdown("""
     background:linear-gradient(90deg,#8b5cf6,#ec4899);
     color:white;
     font-weight:bold;
-    transition:0.3s;
-}
-
-.stButton>button:hover{
-    transform:scale(1.02);
 }
 
 .card{
-    background:linear-gradient(135deg,#a78bfa,#f472b6);
-    padding:20px;
+    background:linear-gradient(135deg,#8b5cf6,#ec4899);
     border-radius:18px;
+    padding:20px;
     color:white;
     text-align:center;
     height:150px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.15);
-}
-
-.menu-title{
-    font-size:18px;
-    font-weight:bold;
 }
 
 </style>
@@ -76,12 +65,12 @@ st.markdown("""
 # FUNCTIONS
 # =========================================
 
-def get_data(sheet_name):
+def get_data(sheet):
 
     try:
 
         response = requests.get(
-            f"{API_URL}?sheet={sheet_name}"
+            f"{API_URL}?sheet={sheet}"
         )
 
         data = response.json()
@@ -92,22 +81,12 @@ def get_data(sheet_name):
 
         return pd.DataFrame()
 
-def save_data(sheet_name, data):
+def save_data(sheet, data):
 
     payload = {
         "action":"save",
-        "sheet":sheet_name,
+        "sheet":sheet,
         "data":data
-    }
-
-    requests.post(API_URL, json=payload)
-
-def delete_data(sheet_name, row_id):
-
-    payload = {
-        "action":"delete",
-        "sheet":sheet_name,
-        "row_id":row_id
     }
 
     requests.post(API_URL, json=payload)
@@ -130,28 +109,19 @@ if st.session_state.login == False:
         type="password"
     )
 
-    col1,col2 = st.columns(2)
+    if st.button("Login"):
 
-    with col1:
+        if username == "admin" and password == "admin123":
 
-        if st.button("Login"):
+            st.session_state.login = True
+            st.rerun()
 
-            if username == "admin" and password == "admin123":
+        else:
 
-                st.session_state.login = True
-                st.rerun()
+            st.error("Wrong Username or Password")
 
-            else:
-
-                st.error("Wrong Username or Password")
-
-    with col2:
-
-        if st.button("Forgot Password"):
-
-            st.info("Default Login")
-            st.info("Username = admin")
-            st.info("Password = admin123")
+    st.info("Username = admin")
+    st.info("Password = admin123")
 
     st.stop()
 
@@ -159,10 +129,7 @@ if st.session_state.login == False:
 # SIDEBAR
 # =========================================
 
-st.sidebar.markdown(
-    "<h1>🐶 LAIKA ERP</h1>",
-    unsafe_allow_html=True
-)
+st.sidebar.title("🐶 LAIKA ERP")
 
 page = st.sidebar.radio(
     "MENU",
@@ -178,10 +145,6 @@ page = st.sidebar.radio(
     ]
 )
 
-st.sidebar.divider()
-
-st.sidebar.success("Admin Login Active")
-
 if st.sidebar.button("Logout"):
 
     st.session_state.login = False
@@ -194,12 +157,12 @@ if st.sidebar.button("Logout"):
 sales_df = get_data("Sales")
 purchase_df = get_data("Purchase")
 expense_df = get_data("Expense")
+stock_df = get_data("Stock")
 customer_df = get_data("Customer")
 supplier_df = get_data("Supplier")
-stock_df = get_data("Stock")
 
 # =========================================
-# SAFE VALUES
+# TOTALS
 # =========================================
 
 sales_total = 0
@@ -211,27 +174,45 @@ online_total = 0
 if not sales_df.empty:
 
     if "Total" in sales_df.columns:
-        sales_total = sales_df["Total"].astype(float).sum()
+
+        sales_total = pd.to_numeric(
+            sales_df["Total"],
+            errors="coerce"
+        ).sum()
 
     if "Payment" in sales_df.columns:
 
         for _,row in sales_df.iterrows():
 
-            if row["Payment"] == "Cash":
-                cash_total += float(row["Paid"])
+            payment = str(row.get("Payment",""))
 
-            elif row["Payment"] == "Online":
-                online_total += float(row["Paid"])
+            paid = float(row.get("Paid",0))
+
+            if payment == "Cash":
+
+                cash_total += paid
+
+            elif payment == "Online":
+
+                online_total += paid
 
 if not purchase_df.empty:
 
     if "Total" in purchase_df.columns:
-        purchase_total = purchase_df["Total"].astype(float).sum()
+
+        purchase_total = pd.to_numeric(
+            purchase_df["Total"],
+            errors="coerce"
+        ).sum()
 
 if not expense_df.empty:
 
     if "Amount" in expense_df.columns:
-        expense_total = expense_df["Amount"].astype(float).sum()
+
+        expense_total = pd.to_numeric(
+            expense_df["Amount"],
+            errors="coerce"
+        ).sum()
 
 profit_total = (
     sales_total
@@ -287,9 +268,9 @@ if page == "Dashboard":
 
     st.divider()
 
-    d1,d2 = st.columns(2)
+    c5,c6 = st.columns(2)
 
-    with d1:
+    with c5:
 
         st.markdown(f"""
         <div class="card">
@@ -298,7 +279,7 @@ if page == "Dashboard":
         </div>
         """, unsafe_allow_html=True)
 
-    with d2:
+    with c6:
 
         st.markdown(f"""
         <div class="card">
@@ -313,55 +294,38 @@ if page == "Dashboard":
 
 elif page == "Purchase":
 
-    st.title("🛒 Purchase Entry")
+    st.title("🛒 Purchase")
 
-    col1,col2 = st.columns(2)
+    product = st.text_input("Product Name")
 
-    with col1:
+    unit = st.selectbox(
+        "Unit",
+        ["KG","PCS","DOZEN","BAG"]
+    )
 
-        bill = st.text_input(
-            "Purchase Bill Number",
-            value=str(len(purchase_df)+1)
-        )
+    qty = st.number_input(
+        "Quantity",
+        min_value=0.0
+    )
 
-        supplier = st.text_input(
-            "Supplier Name"
-        )
+    rate = st.number_input(
+        "Rate",
+        min_value=0.0
+    )
 
-        product = st.text_input(
-            "Product Name"
-        )
+    total = qty * rate
 
-        unit = st.selectbox(
-            "Unit",
-            ["KG","PCS","DOZEN","BAG"]
-        )
+    st.info(f"Total = ₹ {total}")
 
-    with col2:
+    payment = st.selectbox(
+        "Payment",
+        ["Cash","Online","Udhari"]
+    )
 
-        qty = st.number_input(
-            "Quantity",
-            min_value=0.0
-        )
-
-        rate = st.number_input(
-            "Rate",
-            min_value=0.0
-        )
-
-        total = qty * rate
-
-        st.info(f"Total = ₹ {total}")
-
-        payment = st.selectbox(
-            "Payment",
-            ["Cash","Online","Udhari"]
-        )
-
-        paid = st.number_input(
-            "Paid Amount",
-            min_value=0.0
-        )
+    paid = st.number_input(
+        "Paid Amount",
+        min_value=0.0
+    )
 
     balance = total - paid
 
@@ -371,9 +335,7 @@ elif page == "Purchase":
 
         data = {
 
-            "ID":str(datetime.now().timestamp()),
-            "Bill":bill,
-            "Supplier":supplier,
+            "Date":str(datetime.now()),
             "Product":product,
             "Unit":unit,
             "Qty":qty,
@@ -388,30 +350,6 @@ elif page == "Purchase":
         save_data("Purchase", data)
 
         st.success("Purchase Saved")
-        st.rerun()
-
-    st.divider()
-
-    if not purchase_df.empty:
-
-        st.dataframe(
-            purchase_df,
-            use_container_width=True
-        )
-
-        delete_id = st.text_input(
-            "Delete Purchase ID"
-        )
-
-        if st.button("Delete Purchase"):
-
-            delete_data(
-                "Purchase",
-                delete_id
-            )
-
-            st.success("Purchase Deleted")
-            st.rerun()
 
 # =========================================
 # SALES
@@ -419,59 +357,44 @@ elif page == "Purchase":
 
 elif page == "Sales":
 
-    st.title("💰 Sales Entry")
+    st.title("💰 Sales")
 
-    col1,col2 = st.columns(2)
+    customer = st.text_input("Customer Name")
 
-    with col1:
+    product = st.text_input("Product Name")
 
-        bill = st.text_input(
-            "Sales Bill Number",
-            value=str(len(sales_df)+1)
-        )
+    unit = st.selectbox(
+        "Sales Unit",
+        ["KG","PCS","DOZEN","BAG"]
+    )
 
-        customer = st.text_input(
-            "Customer Name"
-        )
+    qty = st.number_input(
+        "Sales Qty",
+        min_value=0.0
+    )
 
-        product = st.text_input(
-            "Product Name"
-        )
+    rate = st.number_input(
+        "Sales Rate",
+        min_value=0.0
+    )
 
-        unit = st.selectbox(
-            "Sales Unit",
-            ["KG","PCS","DOZEN","BAG"]
-        )
+    total = qty * rate
 
-    with col2:
+    reward_points = int(total / 100) * 50
 
-        qty = st.number_input(
-            "Sales Quantity",
-            min_value=0.0
-        )
+    st.success(
+        f"Reward Points = {reward_points}"
+    )
 
-        rate = st.number_input(
-            "Sales Rate",
-            min_value=0.0
-        )
+    payment = st.selectbox(
+        "Sales Payment",
+        ["Cash","Online","Udhari"]
+    )
 
-        total = qty * rate
-
-        reward_points = int(total/100)*50
-
-        st.success(
-            f"Reward Points = {reward_points}"
-        )
-
-        payment = st.selectbox(
-            "Sales Payment",
-            ["Cash","Online","Udhari"]
-        )
-
-        paid = st.number_input(
-            "Sales Paid Amount",
-            min_value=0.0
-        )
+    paid = st.number_input(
+        "Sales Paid Amount",
+        min_value=0.0
+    )
 
     balance = total - paid
 
@@ -481,8 +404,7 @@ elif page == "Sales":
 
         data = {
 
-            "ID":str(datetime.now().timestamp()),
-            "Bill":bill,
+            "Date":str(datetime.now()),
             "Customer":customer,
             "Product":product,
             "Unit":unit,
@@ -499,30 +421,6 @@ elif page == "Sales":
         save_data("Sales", data)
 
         st.success("Sales Saved")
-        st.rerun()
-
-    st.divider()
-
-    if not sales_df.empty:
-
-        st.dataframe(
-            sales_df,
-            use_container_width=True
-        )
-
-        delete_id = st.text_input(
-            "Delete Sales ID"
-        )
-
-        if st.button("Delete Sales"):
-
-            delete_data(
-                "Sales",
-                delete_id
-            )
-
-            st.success("Sales Deleted")
-            st.rerun()
 
 # =========================================
 # EXPENSE
@@ -532,7 +430,7 @@ elif page == "Expense":
 
     st.title("💸 Expense")
 
-    expense_name = st.text_input(
+    expense = st.text_input(
         "Expense Name"
     )
 
@@ -541,33 +439,19 @@ elif page == "Expense":
         min_value=0.0
     )
 
-    payment = st.selectbox(
-        "Payment Mode",
-        ["Cash","Online"]
-    )
-
     if st.button("Save Expense"):
 
         data = {
 
-            "ID":str(datetime.now().timestamp()),
-            "Expense":expense_name,
-            "Amount":amount,
-            "Payment":payment
+            "Date":str(datetime.now()),
+            "Expense":expense,
+            "Amount":amount
 
         }
 
         save_data("Expense", data)
 
         st.success("Expense Saved")
-        st.rerun()
-
-    if not expense_df.empty:
-
-        st.dataframe(
-            expense_df,
-            use_container_width=True
-        )
 
 # =========================================
 # STOCK
@@ -577,12 +461,10 @@ elif page == "Stock":
 
     st.title("📦 Stock")
 
-    if not stock_df.empty:
-
-        st.dataframe(
-            stock_df,
-            use_container_width=True
-        )
+    st.dataframe(
+        stock_df,
+        use_container_width=True
+    )
 
 # =========================================
 # CUSTOMER LEDGER
@@ -592,12 +474,10 @@ elif page == "Customer Ledger":
 
     st.title("👤 Customer Ledger")
 
-    if not customer_df.empty:
-
-        st.dataframe(
-            customer_df,
-            use_container_width=True
-        )
+    st.dataframe(
+        customer_df,
+        use_container_width=True
+    )
 
 # =========================================
 # SUPPLIER LEDGER
@@ -607,12 +487,10 @@ elif page == "Supplier Ledger":
 
     st.title("🏪 Supplier Ledger")
 
-    if not supplier_df.empty:
-
-        st.dataframe(
-            supplier_df,
-            use_container_width=True
-        )
+    st.dataframe(
+        supplier_df,
+        use_container_width=True
+    )
 
 # =========================================
 # SETTINGS
@@ -622,6 +500,4 @@ elif page == "Settings":
 
     st.title("⚙️ Settings")
 
-    st.success("LAIKA ERP Running Successfully")
-
-    st.info("Admin Mode Active")
+    st.success("ERP Running Successfully")
